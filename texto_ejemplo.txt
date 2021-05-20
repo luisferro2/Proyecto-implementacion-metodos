@@ -1,0 +1,3 @@
+# This is a comment.
+variable = 10
+# This is another comment.
