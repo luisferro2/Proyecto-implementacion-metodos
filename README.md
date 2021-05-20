@@ -1,11 +1,11 @@
 # Proyecto-implementacion-metodos
 Proyecto para la clase de Implementación de métodos computacionales.
 
-# Install
+## Install
 1.- If you haven´t, install Clojupyter.
 2.- If you haven´t, install git.
 
-# Use
+## Use
 1.- Clone the repository by typing the following in the terminal:
 
 ```sh
@@ -17,6 +17,6 @@ cd Proyecto-implementacion-metodos
 ```
 3.- Run notebook...
 
-# Credits
+## Credits
 Authors:
 * Luis Ignacio Ferro Salinas A01378248
