@@ -1,3 +1,10 @@
 # This is a comment.
 variable = 10
 # This is another comment.
+my_string = "this is a string"
+
+my_second_string = 'this is another string'
+my_third_string = """ This string goes for multiple lines
+		      weird"""
+my_fourth_string = f'''A formatted string that goes for
+ 		       multiple lines'''
