@@ -1,0 +1,20 @@
+.comment {
+    color: red;
+}
+
+.keyword {
+    color: brown;
+}
+
+.byte {
+    color: green;
+}
+
+.string {
+    color: blue;
+}
+
+.identifier {
+    color: yellow
+}
+
