@@ -1,0 +1,552 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="categorical-styles.css">
+        <title>Documento de python resaltado</title>
+    </head>
+    <body>
+        <pre><span style='color:crimson'>"""Python part of the warnings subsystem."""</span>
+
+<span style='color:blueviolet'>import</span> <span style='color:darkgreen'>sys</span>
+
+
+<span style='color:darkgreen'>__all__</span> = [<span style='color:crimson'>"warn"</span>, <span style='color:crimson'>"warn_explicit"</span>, <span style='color:crimson'>"showwarning"</span>,
+           <span style='color:crimson'>"formatwarning"</span>, <span style='color:crimson'>"filterwarnings"</span>, <span style='color:crimson'>"simplefilter"</span>,
+           <span style='color:crimson'>"resetwarnings"</span>, <span style='color:crimson'>"catch_warnings"</span>]
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>showwarning</span>(<span style='color:darkgreen'>message</span>, <span style='color:darkgreen'>category</span>, <span style='color:darkgreen'>filename</span>, <span style='color:darkgreen'>lineno</span>, <span style='color:darkgreen'>file</span>=<span style='color:blueviolet'>None</span>, <span style='color:darkgreen'>line</span>=<span style='color:blueviolet'>None</span>):
+    <span style='color:crimson'>"""Hook to write a warning to a file; replace if you like."""</span>
+    <span style='color:darkgreen'>msg</span> = <span style='color:darkgreen'>WarningMessage</span>(<span style='color:darkgreen'>message</span>, <span style='color:darkgreen'>category</span>, <span style='color:darkgreen'>filename</span>, <span style='color:darkgreen'>lineno</span>, <span style='color:darkgreen'>file</span>, <span style='color:darkgreen'>line</span>)
+    <span style='color:darkgreen'>_showwarnmsg_impl</span>(<span style='color:darkgreen'>msg</span>)
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>formatwarning</span>(<span style='color:darkgreen'>message</span>, <span style='color:darkgreen'>category</span>, <span style='color:darkgreen'>filename</span>, <span style='color:darkgreen'>lineno</span>, <span style='color:darkgreen'>line</span>=<span style='color:blueviolet'>None</span>):
+    <span style='color:crimson'>"""Function to format a warning the standard way."""</span>
+    <span style='color:darkgreen'>msg</span> = <span style='color:darkgreen'>WarningMessage</span>(<span style='color:darkgreen'>message</span>, <span style='color:darkgreen'>category</span>, <span style='color:darkgreen'>filename</span>, <span style='color:darkgreen'>lineno</span>, <span style='color:blueviolet'>None</span>, <span style='color:darkgreen'>line</span>)
+    <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>_formatwarnmsg_impl</span>(<span style='color:darkgreen'>msg</span>)
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>_showwarnmsg_impl</span>(<span style='color:darkgreen'>msg</span>):
+    <span style='color:darkgreen'>file</span> = <span style='color:darkgreen'>msg</span>.<span style='color:darkgreen'>file</span>
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>file</span> <span style='color:blueviolet'>is</span> <span style='color:blueviolet'>None</span>:
+        <span style='color:darkgreen'>file</span> = <span style='color:darkgreen'>sys</span>.<span style='color:darkgreen'>stderr</span>
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>file</span> <span style='color:blueviolet'>is</span> <span style='color:blueviolet'>None</span>:
+            <span style='color:darkblue'># sys.stderr is None when run with pythonw.exe:</span>
+            <span style='color:darkblue'># warnings get lost</span>
+            <span style='color:blueviolet'>return</span>
+    <span style='color:darkgreen'>text</span> = <span style='color:darkgreen'>_formatwarnmsg</span>(<span style='color:darkgreen'>msg</span>)
+    <span style='color:blueviolet'>try</span>:
+        <span style='color:darkgreen'>file</span>.<span style='color:darkgreen'>write</span>(<span style='color:darkgreen'>text</span>)
+    <span style='color:blueviolet'>except</span> <span style='color:darkgreen'>OSError</span>:
+        <span style='color:darkblue'># the file (probably stderr) is invalid - this warning gets lost.</span>
+        <span style='color:blueviolet'>pass</span>
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>_formatwarnmsg_impl</span>(<span style='color:darkgreen'>msg</span>):
+    <span style='color:darkgreen'>category</span> = <span style='color:darkgreen'>msg</span>.<span style='color:darkgreen'>category</span>.<span style='color:darkgreen'>__name__</span>
+    <span style='color:darkgreen'>s</span> =  <span style='color:crimson'>f"{msg.filename}:{msg.lineno}: {category}: {msg.message}\n"</span>
+
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>msg</span>.<span style='color:darkgreen'>line</span> <span style='color:blueviolet'>is</span> <span style='color:blueviolet'>None</span>:
+        <span style='color:blueviolet'>try</span>:
+            <span style='color:blueviolet'>import</span> <span style='color:darkgreen'>linecache</span>
+            <span style='color:darkgreen'>line</span> = <span style='color:darkgreen'>linecache</span>.<span style='color:darkgreen'>getline</span>(<span style='color:darkgreen'>msg</span>.<span style='color:darkgreen'>filename</span>, <span style='color:darkgreen'>msg</span>.<span style='color:darkgreen'>lineno</span>)
+        <span style='color:blueviolet'>except</span> <span style='color:darkgreen'>Exception</span>:
+            <span style='color:darkblue'># When a warning is logged during Python shutdown, linecache</span>
+            <span style='color:darkblue'># and the import machinery don't work anymore</span>
+            <span style='color:darkgreen'>line</span> = <span style='color:blueviolet'>None</span>
+            <span style='color:darkgreen'>linecache</span> = <span style='color:blueviolet'>None</span>
+    <span style='color:blueviolet'>else</span>:
+        <span style='color:darkgreen'>line</span> = <span style='color:darkgreen'>msg</span>.<span style='color:darkgreen'>line</span>
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>line</span>:
+        <span style='color:darkgreen'>line</span> = <span style='color:darkgreen'>line</span>.<span style='color:darkgreen'>strip</span>()
+        <span style='color:darkgreen'>s</span> += <span style='color:crimson'>"  %s\n"</span> % <span style='color:darkgreen'>line</span>
+
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>msg</span>.<span style='color:darkgreen'>source</span> <span style='color:blueviolet'>is</span> <span style='color:blueviolet'>not</span> <span style='color:blueviolet'>None</span>:
+        <span style='color:blueviolet'>try</span>:
+            <span style='color:blueviolet'>import</span> <span style='color:darkgreen'>tracemalloc</span>
+        <span style='color:darkblue'># Logging a warning should not raise a new exception:</span>
+        <span style='color:darkblue'># catch Exception, not only ImportError and RecursionError.</span>
+        <span style='color:blueviolet'>except</span> <span style='color:darkgreen'>Exception</span>:
+            <span style='color:darkblue'># don't suggest to enable tracemalloc if it's not available</span>
+            <span style='color:darkgreen'>tracing</span> = <span style='color:blueviolet'>True</span>
+            <span style='color:darkgreen'>tb</span> = <span style='color:blueviolet'>None</span>
+        <span style='color:blueviolet'>else</span>:
+            <span style='color:darkgreen'>tracing</span> = <span style='color:darkgreen'>tracemalloc</span>.<span style='color:darkgreen'>is_tracing</span>()
+            <span style='color:blueviolet'>try</span>:
+                <span style='color:darkgreen'>tb</span> = <span style='color:darkgreen'>tracemalloc</span>.<span style='color:darkgreen'>get_object_traceback</span>(<span style='color:darkgreen'>msg</span>.<span style='color:darkgreen'>source</span>)
+            <span style='color:blueviolet'>except</span> <span style='color:darkgreen'>Exception</span>:
+                <span style='color:darkblue'># When a warning is logged during Python shutdown, tracemalloc</span>
+                <span style='color:darkblue'># and the import machinery don't work anymore</span>
+                <span style='color:darkgreen'>tb</span> = <span style='color:blueviolet'>None</span>
+
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>tb</span> <span style='color:blueviolet'>is</span> <span style='color:blueviolet'>not</span> <span style='color:blueviolet'>None</span>:
+            <span style='color:darkgreen'>s</span> += <span style='color:crimson'>'Object allocated at (most recent call last):\n'</span>
+            <span style='color:blueviolet'>for</span> <span style='color:darkgreen'>frame</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>tb</span>:
+                <span style='color:darkgreen'>s</span> += (<span style='color:crimson'>'  File "%s", lineno %s\n'</span>
+                      % (<span style='color:darkgreen'>frame</span>.<span style='color:darkgreen'>filename</span>, <span style='color:darkgreen'>frame</span>.<span style='color:darkgreen'>lineno</span>))
+
+                <span style='color:blueviolet'>try</span>:
+                    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>linecache</span> <span style='color:blueviolet'>is</span> <span style='color:blueviolet'>not</span> <span style='color:blueviolet'>None</span>:
+                        <span style='color:darkgreen'>line</span> = <span style='color:darkgreen'>linecache</span>.<span style='color:darkgreen'>getline</span>(<span style='color:darkgreen'>frame</span>.<span style='color:darkgreen'>filename</span>, <span style='color:darkgreen'>frame</span>.<span style='color:darkgreen'>lineno</span>)
+                    <span style='color:blueviolet'>else</span>:
+                        <span style='color:darkgreen'>line</span> = <span style='color:blueviolet'>None</span>
+                <span style='color:blueviolet'>except</span> <span style='color:darkgreen'>Exception</span>:
+                    <span style='color:darkgreen'>line</span> = <span style='color:blueviolet'>None</span>
+                <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>line</span>:
+                    <span style='color:darkgreen'>line</span> = <span style='color:darkgreen'>line</span>.<span style='color:darkgreen'>strip</span>()
+                    <span style='color:darkgreen'>s</span> += <span style='color:crimson'>'    %s\n'</span> % <span style='color:darkgreen'>line</span>
+        <span style='color:blueviolet'>elif</span> <span style='color:blueviolet'>not</span> <span style='color:darkgreen'>tracing</span>:
+            <span style='color:darkgreen'>s</span> += (<span style='color:crimson'>f'{category}: Enable tracemalloc to get the object '</span>
+                  <span style='color:crimson'>f'allocation traceback\n'</span>)
+    <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>s</span>
+
+<span style='color:darkblue'># Keep a reference to check if the function was replaced</span>
+<span style='color:darkgreen'>_showwarning_orig</span> = <span style='color:darkgreen'>showwarning</span>
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>_showwarnmsg</span>(<span style='color:darkgreen'>msg</span>):
+    <span style='color:crimson'>"""Hook to write a warning to a file; replace if you like."""</span>
+    <span style='color:blueviolet'>try</span>:
+        <span style='color:darkgreen'>sw</span> = <span style='color:darkgreen'>showwarning</span>
+    <span style='color:blueviolet'>except</span> <span style='color:darkgreen'>NameError</span>:
+        <span style='color:blueviolet'>pass</span>
+    <span style='color:blueviolet'>else</span>:
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>sw</span> <span style='color:blueviolet'>is</span> <span style='color:blueviolet'>not</span> <span style='color:darkgreen'>_showwarning_orig</span>:
+            <span style='color:darkblue'># warnings.showwarning() was replaced</span>
+            <span style='color:blueviolet'>if</span> <span style='color:blueviolet'>not</span> <span style='color:darkgreen'>callable</span>(<span style='color:darkgreen'>sw</span>):
+                <span style='color:blueviolet'>raise</span> <span style='color:darkgreen'>TypeError</span>(<span style='color:crimson'>"warnings.showwarning() must be set to a "</span>
+                                <span style='color:crimson'>"function or method"</span>)
+
+            <span style='color:darkgreen'>sw</span>(<span style='color:darkgreen'>msg</span>.<span style='color:darkgreen'>message</span>, <span style='color:darkgreen'>msg</span>.<span style='color:darkgreen'>category</span>, <span style='color:darkgreen'>msg</span>.<span style='color:darkgreen'>filename</span>, <span style='color:darkgreen'>msg</span>.<span style='color:darkgreen'>lineno</span>,
+               <span style='color:darkgreen'>msg</span>.<span style='color:darkgreen'>file</span>, <span style='color:darkgreen'>msg</span>.<span style='color:darkgreen'>line</span>)
+            <span style='color:blueviolet'>return</span>
+    <span style='color:darkgreen'>_showwarnmsg_impl</span>(<span style='color:darkgreen'>msg</span>)
+
+<span style='color:darkblue'># Keep a reference to check if the function was replaced</span>
+<span style='color:darkgreen'>_formatwarning_orig</span> = <span style='color:darkgreen'>formatwarning</span>
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>_formatwarnmsg</span>(<span style='color:darkgreen'>msg</span>):
+    <span style='color:crimson'>"""Function to format a warning the standard way."""</span>
+    <span style='color:blueviolet'>try</span>:
+        <span style='color:darkgreen'>fw</span> = <span style='color:darkgreen'>formatwarning</span>
+    <span style='color:blueviolet'>except</span> <span style='color:darkgreen'>NameError</span>:
+        <span style='color:blueviolet'>pass</span>
+    <span style='color:blueviolet'>else</span>:
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>fw</span> <span style='color:blueviolet'>is</span> <span style='color:blueviolet'>not</span> <span style='color:darkgreen'>_formatwarning_orig</span>:
+            <span style='color:darkblue'># warnings.formatwarning() was replaced</span>
+            <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>fw</span>(<span style='color:darkgreen'>msg</span>.<span style='color:darkgreen'>message</span>, <span style='color:darkgreen'>msg</span>.<span style='color:darkgreen'>category</span>,
+                      <span style='color:darkgreen'>msg</span>.<span style='color:darkgreen'>filename</span>, <span style='color:darkgreen'>msg</span>.<span style='color:darkgreen'>lineno</span>, <span style='color:darkgreen'>msg</span>.<span style='color:darkgreen'>line</span>)
+    <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>_formatwarnmsg_impl</span>(<span style='color:darkgreen'>msg</span>)
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>filterwarnings</span>(<span style='color:darkgreen'>action</span>, <span style='color:darkgreen'>message</span>=<span style='color:crimson'>""</span>, <span style='color:darkgreen'>category</span>=<span style='color:darkgreen'>Warning</span>, <span style='color:darkgreen'>module</span>=<span style='color:crimson'>""</span>, <span style='color:darkgreen'>lineno</span>=0,
+                   <span style='color:darkgreen'>append</span>=<span style='color:blueviolet'>False</span>):
+    <span style='color:crimson'>"""Insert an entry into the list of warnings filters (at the front).
+    'action' -- one of "error", "ignore", "always", "default", "module",
+                or "once"
+    'message' -- a regex that the warning message must match
+    'category' -- a class that the warning must be a subclass of
+    'module' -- a regex that the module name must match
+    'lineno' -- an integer line number, 0 matches all warnings
+    'append' -- if true, append to the list of filters
+    """</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>action</span> <span style='color:blueviolet'>in</span> (<span style='color:crimson'>"error"</span>, <span style='color:crimson'>"ignore"</span>, <span style='color:crimson'>"always"</span>, <span style='color:crimson'>"default"</span>, <span style='color:crimson'>"module"</span>,
+                      <span style='color:crimson'>"once"</span>), <span style='color:crimson'>"invalid action: %r"</span> % (<span style='color:darkgreen'>action</span>,)
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>isinstance</span>(<span style='color:darkgreen'>message</span>, <span style='color:darkgreen'>str</span>), <span style='color:crimson'>"message must be a string"</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>isinstance</span>(<span style='color:darkgreen'>category</span>, <span style='color:darkgreen'>type</span>), <span style='color:crimson'>"category must be a class"</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>issubclass</span>(<span style='color:darkgreen'>category</span>, <span style='color:darkgreen'>Warning</span>), <span style='color:crimson'>"category must be a Warning subclass"</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>isinstance</span>(<span style='color:darkgreen'>module</span>, <span style='color:darkgreen'>str</span>), <span style='color:crimson'>"module must be a string"</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>isinstance</span>(<span style='color:darkgreen'>lineno</span>, <span style='color:darkgreen'>int</span>) <span style='color:blueviolet'>and</span> <span style='color:darkgreen'>lineno</span> >= 0, \
+           <span style='color:crimson'>"lineno must be an int >= 0"</span>
+
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>message</span> <span style='color:blueviolet'>or</span> <span style='color:darkgreen'>module</span>:
+        <span style='color:blueviolet'>import</span> <span style='color:darkgreen'>re</span>
+
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>message</span>:
+        <span style='color:darkgreen'>message</span> = <span style='color:darkgreen'>re</span>.<span style='color:darkgreen'>compile</span>(<span style='color:darkgreen'>message</span>, <span style='color:darkgreen'>re</span>.<span style='color:darkgreen'>I</span>)
+    <span style='color:blueviolet'>else</span>:
+        <span style='color:darkgreen'>message</span> = <span style='color:blueviolet'>None</span>
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>module</span>:
+        <span style='color:darkgreen'>module</span> = <span style='color:darkgreen'>re</span>.<span style='color:darkgreen'>compile</span>(<span style='color:darkgreen'>module</span>)
+    <span style='color:blueviolet'>else</span>:
+        <span style='color:darkgreen'>module</span> = <span style='color:blueviolet'>None</span>
+
+    <span style='color:darkgreen'>_add_filter</span>(<span style='color:darkgreen'>action</span>, <span style='color:darkgreen'>message</span>, <span style='color:darkgreen'>category</span>, <span style='color:darkgreen'>module</span>, <span style='color:darkgreen'>lineno</span>, <span style='color:darkgreen'>append</span>=<span style='color:darkgreen'>append</span>)
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>simplefilter</span>(<span style='color:darkgreen'>action</span>, <span style='color:darkgreen'>category</span>=<span style='color:darkgreen'>Warning</span>, <span style='color:darkgreen'>lineno</span>=0, <span style='color:darkgreen'>append</span>=<span style='color:blueviolet'>False</span>):
+    <span style='color:crimson'>"""Insert a simple entry into the list of warnings filters (at the front).
+    A simple filter matches all modules and messages.
+    'action' -- one of "error", "ignore", "always", "default", "module",
+                or "once"
+    'category' -- a class that the warning must be a subclass of
+    'lineno' -- an integer line number, 0 matches all warnings
+    'append' -- if true, append to the list of filters
+    """</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>action</span> <span style='color:blueviolet'>in</span> (<span style='color:crimson'>"error"</span>, <span style='color:crimson'>"ignore"</span>, <span style='color:crimson'>"always"</span>, <span style='color:crimson'>"default"</span>, <span style='color:crimson'>"module"</span>,
+                      <span style='color:crimson'>"once"</span>), <span style='color:crimson'>"invalid action: %r"</span> % (<span style='color:darkgreen'>action</span>,)
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>isinstance</span>(<span style='color:darkgreen'>lineno</span>, <span style='color:darkgreen'>int</span>) <span style='color:blueviolet'>and</span> <span style='color:darkgreen'>lineno</span> >= 0, \
+           <span style='color:crimson'>"lineno must be an int >= 0"</span>
+    <span style='color:darkgreen'>_add_filter</span>(<span style='color:darkgreen'>action</span>, <span style='color:blueviolet'>None</span>, <span style='color:darkgreen'>category</span>, <span style='color:blueviolet'>None</span>, <span style='color:darkgreen'>lineno</span>, <span style='color:darkgreen'>append</span>=<span style='color:darkgreen'>append</span>)
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>_add_filter</span>(*<span style='color:darkgreen'>item</span>, <span style='color:darkgreen'>append</span>):
+    <span style='color:darkblue'># Remove possible duplicate filters, so new one will be placed</span>
+    <span style='color:darkblue'># in correct place. If append=True and duplicate exists, do nothing.</span>
+    <span style='color:blueviolet'>if</span> <span style='color:blueviolet'>not</span> <span style='color:darkgreen'>append</span>:
+        <span style='color:blueviolet'>try</span>:
+            <span style='color:darkgreen'>filters</span>.<span style='color:darkgreen'>remove</span>(<span style='color:darkgreen'>item</span>)
+        <span style='color:blueviolet'>except</span> <span style='color:darkgreen'>ValueError</span>:
+            <span style='color:blueviolet'>pass</span>
+        <span style='color:darkgreen'>filters</span>.<span style='color:darkgreen'>insert</span>(0, <span style='color:darkgreen'>item</span>)
+    <span style='color:blueviolet'>else</span>:
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>item</span> <span style='color:blueviolet'>not</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>filters</span>:
+            <span style='color:darkgreen'>filters</span>.<span style='color:darkgreen'>append</span>(<span style='color:darkgreen'>item</span>)
+    <span style='color:darkgreen'>_filters_mutated</span>()
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>resetwarnings</span>():
+    <span style='color:crimson'>"""Clear the list of warning filters, so that no filters are active."""</span>
+    <span style='color:darkgreen'>filters</span>[:] = []
+    <span style='color:darkgreen'>_filters_mutated</span>()
+
+<span style='color:blueviolet'>class</span> <span style='color:darkgreen'>_OptionError</span>(<span style='color:darkgreen'>Exception</span>):
+    <span style='color:crimson'>"""Exception used by option processing helpers."""</span>
+    <span style='color:blueviolet'>pass</span>
+
+<span style='color:darkblue'># Helper to process -W options passed via sys.warnoptions</span>
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>_processoptions</span>(<span style='color:darkgreen'>args</span>):
+    <span style='color:blueviolet'>for</span> <span style='color:darkgreen'>arg</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>args</span>:
+        <span style='color:blueviolet'>try</span>:
+            <span style='color:darkgreen'>_setoption</span>(<span style='color:darkgreen'>arg</span>)
+        <span style='color:blueviolet'>except</span> <span style='color:darkgreen'>_OptionError</span> <span style='color:blueviolet'>as</span> <span style='color:darkgreen'>msg</span>:
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"Invalid -W option ignored:"</span>, <span style='color:darkgreen'>msg</span>, <span style='color:darkgreen'>file</span>=<span style='color:darkgreen'>sys</span>.<span style='color:darkgreen'>stderr</span>)
+
+<span style='color:darkblue'># Helper for _processoptions()</span>
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>_setoption</span>(<span style='color:darkgreen'>arg</span>):
+    <span style='color:darkgreen'>parts</span> = <span style='color:darkgreen'>arg</span>.<span style='color:darkgreen'>split</span>(<span style='color:crimson'>':'</span>)
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>len</span>(<span style='color:darkgreen'>parts</span>) > 5:
+        <span style='color:blueviolet'>raise</span> <span style='color:darkgreen'>_OptionError</span>(<span style='color:crimson'>"too many fields (max 5): %r"</span> % (<span style='color:darkgreen'>arg</span>,))
+    <span style='color:blueviolet'>while</span> <span style='color:darkgreen'>len</span>(<span style='color:darkgreen'>parts</span>) < 5:
+        <span style='color:darkgreen'>parts</span>.<span style='color:darkgreen'>append</span>(<span style='color:crimson'>''</span>)
+    <span style='color:darkgreen'>action</span>, <span style='color:darkgreen'>message</span>, <span style='color:darkgreen'>category</span>, <span style='color:darkgreen'>module</span>, <span style='color:darkgreen'>lineno</span> = [<span style='color:darkgreen'>s</span>.<span style='color:darkgreen'>strip</span>()
+                                                 <span style='color:blueviolet'>for</span> <span style='color:darkgreen'>s</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>parts</span>]
+    <span style='color:darkgreen'>action</span> = <span style='color:darkgreen'>_getaction</span>(<span style='color:darkgreen'>action</span>)
+    <span style='color:darkgreen'>category</span> = <span style='color:darkgreen'>_getcategory</span>(<span style='color:darkgreen'>category</span>)
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>message</span> <span style='color:blueviolet'>or</span> <span style='color:darkgreen'>module</span>:
+        <span style='color:blueviolet'>import</span> <span style='color:darkgreen'>re</span>
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>message</span>:
+        <span style='color:darkgreen'>message</span> = <span style='color:darkgreen'>re</span>.<span style='color:darkgreen'>escape</span>(<span style='color:darkgreen'>message</span>)
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>module</span>:
+        <span style='color:darkgreen'>module</span> = <span style='color:darkgreen'>re</span>.<span style='color:darkgreen'>escape</span>(<span style='color:darkgreen'>module</span>) + <span style='color:darkgreen'>r</span>'\<span style='color:darkgreen'>Z</span>'
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>lineno</span>:
+        <span style='color:blueviolet'>try</span>:
+            <span style='color:darkgreen'>lineno</span> = <span style='color:darkgreen'>int</span>(<span style='color:darkgreen'>lineno</span>)
+            <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>lineno</span> < 0:
+                <span style='color:blueviolet'>raise</span> <span style='color:darkgreen'>ValueError</span>
+        <span style='color:blueviolet'>except</span> (<span style='color:darkgreen'>ValueError</span>, <span style='color:darkgreen'>OverflowError</span>):
+            <span style='color:blueviolet'>raise</span> <span style='color:darkgreen'>_OptionError</span>(<span style='color:crimson'>"invalid lineno %r"</span> % (<span style='color:darkgreen'>lineno</span>,)) <span style='color:blueviolet'>from</span> <span style='color:blueviolet'>None</span>
+    <span style='color:blueviolet'>else</span>:
+        <span style='color:darkgreen'>lineno</span> = 0
+    <span style='color:darkgreen'>filterwarnings</span>(<span style='color:darkgreen'>action</span>, <span style='color:darkgreen'>message</span>, <span style='color:darkgreen'>category</span>, <span style='color:darkgreen'>module</span>, <span style='color:darkgreen'>lineno</span>)
+
+<span style='color:darkblue'># Helper for _setoption()</span>
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>_getaction</span>(<span style='color:darkgreen'>action</span>):
+    <span style='color:blueviolet'>if</span> <span style='color:blueviolet'>not</span> <span style='color:darkgreen'>action</span>:
+        <span style='color:blueviolet'>return</span> <span style='color:crimson'>"default"</span>
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>action</span> == <span style='color:crimson'>"all"</span>: <span style='color:blueviolet'>return</span> <span style='color:crimson'>"always"</span> <span style='color:darkblue'># Alias</span>
+    <span style='color:blueviolet'>for</span> <span style='color:darkgreen'>a</span> <span style='color:blueviolet'>in</span> (<span style='color:crimson'>'default'</span>, <span style='color:crimson'>'always'</span>, <span style='color:crimson'>'ignore'</span>, <span style='color:crimson'>'module'</span>, <span style='color:crimson'>'once'</span>, <span style='color:crimson'>'error'</span>):
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>a</span>.<span style='color:darkgreen'>startswith</span>(<span style='color:darkgreen'>action</span>):
+            <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>a</span>
+    <span style='color:blueviolet'>raise</span> <span style='color:darkgreen'>_OptionError</span>(<span style='color:crimson'>"invalid action: %r"</span> % (<span style='color:darkgreen'>action</span>,))
+
+<span style='color:darkblue'># Helper for _setoption()</span>
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>_getcategory</span>(<span style='color:darkgreen'>category</span>):
+    <span style='color:blueviolet'>if</span> <span style='color:blueviolet'>not</span> <span style='color:darkgreen'>category</span>:
+        <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>Warning</span>
+    <span style='color:blueviolet'>if</span> <span style='color:crimson'>'.'</span> <span style='color:blueviolet'>not</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>category</span>:
+        <span style='color:blueviolet'>import</span> <span style='color:darkgreen'>builtins</span> <span style='color:blueviolet'>as</span> <span style='color:darkgreen'>m</span>
+        <span style='color:darkgreen'>klass</span> = <span style='color:darkgreen'>category</span>
+    <span style='color:blueviolet'>else</span>:
+        <span style='color:darkgreen'>module</span>, <span style='color:darkgreen'>_</span>, <span style='color:darkgreen'>klass</span> = <span style='color:darkgreen'>category</span>.<span style='color:darkgreen'>rpartition</span>(<span style='color:crimson'>'.'</span>)
+        <span style='color:blueviolet'>try</span>:
+            <span style='color:darkgreen'>m</span> = <span style='color:darkgreen'>__import__</span>(<span style='color:darkgreen'>module</span>, <span style='color:blueviolet'>None</span>, <span style='color:blueviolet'>None</span>, [<span style='color:darkgreen'>klass</span>])
+        <span style='color:blueviolet'>except</span> <span style='color:darkgreen'>ImportError</span>:
+            <span style='color:blueviolet'>raise</span> <span style='color:darkgreen'>_OptionError</span>(<span style='color:crimson'>"invalid module name: %r"</span> % (<span style='color:darkgreen'>module</span>,)) <span style='color:blueviolet'>from</span> <span style='color:blueviolet'>None</span>
+    <span style='color:blueviolet'>try</span>:
+        <span style='color:darkgreen'>cat</span> = <span style='color:darkgreen'>getattr</span>(<span style='color:darkgreen'>m</span>, <span style='color:darkgreen'>klass</span>)
+    <span style='color:blueviolet'>except</span> <span style='color:darkgreen'>AttributeError</span>:
+        <span style='color:blueviolet'>raise</span> <span style='color:darkgreen'>_OptionError</span>(<span style='color:crimson'>"unknown warning category: %r"</span> % (<span style='color:darkgreen'>category</span>,)) <span style='color:blueviolet'>from</span> <span style='color:blueviolet'>None</span>
+    <span style='color:blueviolet'>if</span> <span style='color:blueviolet'>not</span> <span style='color:darkgreen'>issubclass</span>(<span style='color:darkgreen'>cat</span>, <span style='color:darkgreen'>Warning</span>):
+        <span style='color:blueviolet'>raise</span> <span style='color:darkgreen'>_OptionError</span>(<span style='color:crimson'>"invalid warning category: %r"</span> % (<span style='color:darkgreen'>category</span>,))
+    <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>cat</span>
+
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>_is_internal_frame</span>(<span style='color:darkgreen'>frame</span>):
+    <span style='color:crimson'>"""Signal whether the frame is an internal CPython implementation detail."""</span>
+    <span style='color:darkgreen'>filename</span> = <span style='color:darkgreen'>frame</span>.<span style='color:darkgreen'>f_code</span>.<span style='color:darkgreen'>co_filename</span>
+    <span style='color:blueviolet'>return</span> <span style='color:crimson'>'importlib'</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>filename</span> <span style='color:blueviolet'>and</span> <span style='color:crimson'>'_bootstrap'</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>filename</span>
+
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>_next_external_frame</span>(<span style='color:darkgreen'>frame</span>):
+    <span style='color:crimson'>"""Find the next frame that doesn't involve CPython internals."""</span>
+    <span style='color:darkgreen'>frame</span> = <span style='color:darkgreen'>frame</span>.<span style='color:darkgreen'>f_back</span>
+    <span style='color:blueviolet'>while</span> <span style='color:darkgreen'>frame</span> <span style='color:blueviolet'>is</span> <span style='color:blueviolet'>not</span> <span style='color:blueviolet'>None</span> <span style='color:blueviolet'>and</span> <span style='color:darkgreen'>_is_internal_frame</span>(<span style='color:darkgreen'>frame</span>):
+        <span style='color:darkgreen'>frame</span> = <span style='color:darkgreen'>frame</span>.<span style='color:darkgreen'>f_back</span>
+    <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>frame</span>
+
+
+<span style='color:darkblue'># Code typically replaced by _warnings</span>
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>warn</span>(<span style='color:darkgreen'>message</span>, <span style='color:darkgreen'>category</span>=<span style='color:blueviolet'>None</span>, <span style='color:darkgreen'>stacklevel</span>=1, <span style='color:darkgreen'>source</span>=<span style='color:blueviolet'>None</span>):
+    <span style='color:crimson'>"""Issue a warning, or maybe ignore it or raise an exception."""</span>
+    <span style='color:darkblue'># Check if message is already a Warning object</span>
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>isinstance</span>(<span style='color:darkgreen'>message</span>, <span style='color:darkgreen'>Warning</span>):
+        <span style='color:darkgreen'>category</span> = <span style='color:darkgreen'>message</span>.<span style='color:darkgreen'>__class__</span>
+    <span style='color:darkblue'># Check category argument</span>
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>category</span> <span style='color:blueviolet'>is</span> <span style='color:blueviolet'>None</span>:
+        <span style='color:darkgreen'>category</span> = <span style='color:darkgreen'>UserWarning</span>
+    <span style='color:blueviolet'>if</span> <span style='color:blueviolet'>not</span> (<span style='color:darkgreen'>isinstance</span>(<span style='color:darkgreen'>category</span>, <span style='color:darkgreen'>type</span>) <span style='color:blueviolet'>and</span> <span style='color:darkgreen'>issubclass</span>(<span style='color:darkgreen'>category</span>, <span style='color:darkgreen'>Warning</span>)):
+        <span style='color:blueviolet'>raise</span> <span style='color:darkgreen'>TypeError</span>(<span style='color:crimson'>"category must be a Warning subclass, "</span>
+                        <span style='color:crimson'>"not '{:s}'"</span>.<span style='color:darkgreen'>format</span>(<span style='color:darkgreen'>type</span>(<span style='color:darkgreen'>category</span>).<span style='color:darkgreen'>__name__</span>))
+    <span style='color:darkblue'># Get context information</span>
+    <span style='color:blueviolet'>try</span>:
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>stacklevel</span> <= 1 <span style='color:blueviolet'>or</span> <span style='color:darkgreen'>_is_internal_frame</span>(<span style='color:darkgreen'>sys</span>.<span style='color:darkgreen'>_getframe</span>(1)):
+            <span style='color:darkblue'># If frame is too small to care or if the warning originated in</span>
+            <span style='color:darkblue'># internal code, then do not try to hide any frames.</span>
+            <span style='color:darkgreen'>frame</span> = <span style='color:darkgreen'>sys</span>.<span style='color:darkgreen'>_getframe</span>(<span style='color:darkgreen'>stacklevel</span>)
+        <span style='color:blueviolet'>else</span>:
+            <span style='color:darkgreen'>frame</span> = <span style='color:darkgreen'>sys</span>.<span style='color:darkgreen'>_getframe</span>(1)
+            <span style='color:darkblue'># Look for one frame less since the above line starts us off.</span>
+            <span style='color:blueviolet'>for</span> <span style='color:darkgreen'>x</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>range</span>(<span style='color:darkgreen'>stacklevel</span>-1):
+                <span style='color:darkgreen'>frame</span> = <span style='color:darkgreen'>_next_external_frame</span>(<span style='color:darkgreen'>frame</span>)
+                <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>frame</span> <span style='color:blueviolet'>is</span> <span style='color:blueviolet'>None</span>:
+                    <span style='color:blueviolet'>raise</span> <span style='color:darkgreen'>ValueError</span>
+    <span style='color:blueviolet'>except</span> <span style='color:darkgreen'>ValueError</span>:
+        <span style='color:darkgreen'>globals</span> = <span style='color:darkgreen'>sys</span>.<span style='color:darkgreen'>__dict__</span>
+        <span style='color:darkgreen'>filename</span> = <span style='color:crimson'>"sys"</span>
+        <span style='color:darkgreen'>lineno</span> = 1
+    <span style='color:blueviolet'>else</span>:
+        <span style='color:darkgreen'>globals</span> = <span style='color:darkgreen'>frame</span>.<span style='color:darkgreen'>f_globals</span>
+        <span style='color:darkgreen'>filename</span> = <span style='color:darkgreen'>frame</span>.<span style='color:darkgreen'>f_code</span>.<span style='color:darkgreen'>co_filename</span>
+        <span style='color:darkgreen'>lineno</span> = <span style='color:darkgreen'>frame</span>.<span style='color:darkgreen'>f_lineno</span>
+    <span style='color:blueviolet'>if</span> <span style='color:crimson'>'__name__'</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>globals</span>:
+        <span style='color:darkgreen'>module</span> = <span style='color:darkgreen'>globals</span>[<span style='color:crimson'>'__name__'</span>]
+    <span style='color:blueviolet'>else</span>:
+        <span style='color:darkgreen'>module</span> = <span style='color:crimson'>"<string>"</span>
+    <span style='color:darkgreen'>registry</span> = <span style='color:darkgreen'>globals</span>.<span style='color:darkgreen'>setdefault</span>(<span style='color:crimson'>"__warningregistry__"</span>, {})
+    <span style='color:darkgreen'>warn_explicit</span>(<span style='color:darkgreen'>message</span>, <span style='color:darkgreen'>category</span>, <span style='color:darkgreen'>filename</span>, <span style='color:darkgreen'>lineno</span>, <span style='color:darkgreen'>module</span>, <span style='color:darkgreen'>registry</span>,
+                  <span style='color:darkgreen'>globals</span>, <span style='color:darkgreen'>source</span>)
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>warn_explicit</span>(<span style='color:darkgreen'>message</span>, <span style='color:darkgreen'>category</span>, <span style='color:darkgreen'>filename</span>, <span style='color:darkgreen'>lineno</span>,
+                  <span style='color:darkgreen'>module</span>=<span style='color:blueviolet'>None</span>, <span style='color:darkgreen'>registry</span>=<span style='color:blueviolet'>None</span>, <span style='color:darkgreen'>module_globals</span>=<span style='color:blueviolet'>None</span>,
+                  <span style='color:darkgreen'>source</span>=<span style='color:blueviolet'>None</span>):
+    <span style='color:darkgreen'>lineno</span> = <span style='color:darkgreen'>int</span>(<span style='color:darkgreen'>lineno</span>)
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>module</span> <span style='color:blueviolet'>is</span> <span style='color:blueviolet'>None</span>:
+        <span style='color:darkgreen'>module</span> = <span style='color:darkgreen'>filename</span> <span style='color:blueviolet'>or</span> <span style='color:crimson'>"<unknown>"</span>
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>module</span>[-3:].<span style='color:darkgreen'>lower</span>() == <span style='color:crimson'>".py"</span>:
+            <span style='color:darkgreen'>module</span> = <span style='color:darkgreen'>module</span>[:-3] <span style='color:darkblue'># XXX What about leading pathname?</span>
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>registry</span> <span style='color:blueviolet'>is</span> <span style='color:blueviolet'>None</span>:
+        <span style='color:darkgreen'>registry</span> = {}
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>registry</span>.<span style='color:darkgreen'>get</span>(<span style='color:crimson'>'version'</span>, 0) != <span style='color:darkgreen'>_filters_version</span>:
+        <span style='color:darkgreen'>registry</span>.<span style='color:darkgreen'>clear</span>()
+        <span style='color:darkgreen'>registry</span>[<span style='color:crimson'>'version'</span>] = <span style='color:darkgreen'>_filters_version</span>
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>isinstance</span>(<span style='color:darkgreen'>message</span>, <span style='color:darkgreen'>Warning</span>):
+        <span style='color:darkgreen'>text</span> = <span style='color:darkgreen'>str</span>(<span style='color:darkgreen'>message</span>)
+        <span style='color:darkgreen'>category</span> = <span style='color:darkgreen'>message</span>.<span style='color:darkgreen'>__class__</span>
+    <span style='color:blueviolet'>else</span>:
+        <span style='color:darkgreen'>text</span> = <span style='color:darkgreen'>message</span>
+        <span style='color:darkgreen'>message</span> = <span style='color:darkgreen'>category</span>(<span style='color:darkgreen'>message</span>)
+    <span style='color:darkgreen'>key</span> = (<span style='color:darkgreen'>text</span>, <span style='color:darkgreen'>category</span>, <span style='color:darkgreen'>lineno</span>)
+    <span style='color:darkblue'># Quick test for common case</span>
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>registry</span>.<span style='color:darkgreen'>get</span>(<span style='color:darkgreen'>key</span>):
+        <span style='color:blueviolet'>return</span>
+    <span style='color:darkblue'># Search the filters</span>
+    <span style='color:blueviolet'>for</span> <span style='color:darkgreen'>item</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>filters</span>:
+        <span style='color:darkgreen'>action</span>, <span style='color:darkgreen'>msg</span>, <span style='color:darkgreen'>cat</span>, <span style='color:darkgreen'>mod</span>, <span style='color:darkgreen'>ln</span> = <span style='color:darkgreen'>item</span>
+        <span style='color:blueviolet'>if</span> ((<span style='color:darkgreen'>msg</span> <span style='color:blueviolet'>is</span> <span style='color:blueviolet'>None</span> <span style='color:blueviolet'>or</span> <span style='color:darkgreen'>msg</span>.<span style='color:darkgreen'>match</span>(<span style='color:darkgreen'>text</span>)) <span style='color:blueviolet'>and</span>
+            <span style='color:darkgreen'>issubclass</span>(<span style='color:darkgreen'>category</span>, <span style='color:darkgreen'>cat</span>) <span style='color:blueviolet'>and</span>
+            (<span style='color:darkgreen'>mod</span> <span style='color:blueviolet'>is</span> <span style='color:blueviolet'>None</span> <span style='color:blueviolet'>or</span> <span style='color:darkgreen'>mod</span>.<span style='color:darkgreen'>match</span>(<span style='color:darkgreen'>module</span>)) <span style='color:blueviolet'>and</span>
+            (<span style='color:darkgreen'>ln</span> == 0 <span style='color:blueviolet'>or</span> <span style='color:darkgreen'>lineno</span> == <span style='color:darkgreen'>ln</span>)):
+            <span style='color:blueviolet'>break</span>
+    <span style='color:blueviolet'>else</span>:
+        <span style='color:darkgreen'>action</span> = <span style='color:darkgreen'>defaultaction</span>
+    <span style='color:darkblue'># Early exit actions</span>
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>action</span> == <span style='color:crimson'>"ignore"</span>:
+        <span style='color:blueviolet'>return</span>
+
+    <span style='color:darkblue'># Prime the linecache for formatting, in case the</span>
+    <span style='color:darkblue'># "file" is actually in a zipfile or something.</span>
+    <span style='color:blueviolet'>import</span> <span style='color:darkgreen'>linecache</span>
+    <span style='color:darkgreen'>linecache</span>.<span style='color:darkgreen'>getlines</span>(<span style='color:darkgreen'>filename</span>, <span style='color:darkgreen'>module_globals</span>)
+
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>action</span> == <span style='color:crimson'>"error"</span>:
+        <span style='color:blueviolet'>raise</span> <span style='color:darkgreen'>message</span>
+    <span style='color:darkblue'># Other actions</span>
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>action</span> == <span style='color:crimson'>"once"</span>:
+        <span style='color:darkgreen'>registry</span>[<span style='color:darkgreen'>key</span>] = 1
+        <span style='color:darkgreen'>oncekey</span> = (<span style='color:darkgreen'>text</span>, <span style='color:darkgreen'>category</span>)
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>onceregistry</span>.<span style='color:darkgreen'>get</span>(<span style='color:darkgreen'>oncekey</span>):
+            <span style='color:blueviolet'>return</span>
+        <span style='color:darkgreen'>onceregistry</span>[<span style='color:darkgreen'>oncekey</span>] = 1
+    <span style='color:blueviolet'>elif</span> <span style='color:darkgreen'>action</span> == <span style='color:crimson'>"always"</span>:
+        <span style='color:blueviolet'>pass</span>
+    <span style='color:blueviolet'>elif</span> <span style='color:darkgreen'>action</span> == <span style='color:crimson'>"module"</span>:
+        <span style='color:darkgreen'>registry</span>[<span style='color:darkgreen'>key</span>] = 1
+        <span style='color:darkgreen'>altkey</span> = (<span style='color:darkgreen'>text</span>, <span style='color:darkgreen'>category</span>, 0)
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>registry</span>.<span style='color:darkgreen'>get</span>(<span style='color:darkgreen'>altkey</span>):
+            <span style='color:blueviolet'>return</span>
+        <span style='color:darkgreen'>registry</span>[<span style='color:darkgreen'>altkey</span>] = 1
+    <span style='color:blueviolet'>elif</span> <span style='color:darkgreen'>action</span> == <span style='color:crimson'>"default"</span>:
+        <span style='color:darkgreen'>registry</span>[<span style='color:darkgreen'>key</span>] = 1
+    <span style='color:blueviolet'>else</span>:
+        <span style='color:darkblue'># Unrecognized actions are errors</span>
+        <span style='color:blueviolet'>raise</span> <span style='color:darkgreen'>RuntimeError</span>(
+              <span style='color:crimson'>"Unrecognized action (%r) in warnings.filters:\n %s"</span> %
+              (<span style='color:darkgreen'>action</span>, <span style='color:darkgreen'>item</span>))
+    <span style='color:darkblue'># Print message and context</span>
+    <span style='color:darkgreen'>msg</span> = <span style='color:darkgreen'>WarningMessage</span>(<span style='color:darkgreen'>message</span>, <span style='color:darkgreen'>category</span>, <span style='color:darkgreen'>filename</span>, <span style='color:darkgreen'>lineno</span>, <span style='color:darkgreen'>source</span>)
+    <span style='color:darkgreen'>_showwarnmsg</span>(<span style='color:darkgreen'>msg</span>)
+
+
+<span style='color:blueviolet'>class</span> <span style='color:darkgreen'>WarningMessage</span>(<span style='color:darkgreen'>object</span>):
+
+    <span style='color:darkgreen'>_WARNING_DETAILS</span> = (<span style='color:crimson'>"message"</span>, <span style='color:crimson'>"category"</span>, <span style='color:crimson'>"filename"</span>, <span style='color:crimson'>"lineno"</span>, <span style='color:crimson'>"file"</span>,
+                        <span style='color:crimson'>"line"</span>, <span style='color:crimson'>"source"</span>)
+
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>__init__</span>(<span style='color:darkgreen'>self</span>, <span style='color:darkgreen'>message</span>, <span style='color:darkgreen'>category</span>, <span style='color:darkgreen'>filename</span>, <span style='color:darkgreen'>lineno</span>, <span style='color:darkgreen'>file</span>=<span style='color:blueviolet'>None</span>,
+                 <span style='color:darkgreen'>line</span>=<span style='color:blueviolet'>None</span>, <span style='color:darkgreen'>source</span>=<span style='color:blueviolet'>None</span>):
+        <span style='color:darkgreen'>self</span>.<span style='color:darkgreen'>message</span> = <span style='color:darkgreen'>message</span>
+        <span style='color:darkgreen'>self</span>.<span style='color:darkgreen'>category</span> = <span style='color:darkgreen'>category</span>
+        <span style='color:darkgreen'>self</span>.<span style='color:darkgreen'>filename</span> = <span style='color:darkgreen'>filename</span>
+        <span style='color:darkgreen'>self</span>.<span style='color:darkgreen'>lineno</span> = <span style='color:darkgreen'>lineno</span>
+        <span style='color:darkgreen'>self</span>.<span style='color:darkgreen'>file</span> = <span style='color:darkgreen'>file</span>
+        <span style='color:darkgreen'>self</span>.<span style='color:darkgreen'>line</span> = <span style='color:darkgreen'>line</span>
+        <span style='color:darkgreen'>self</span>.<span style='color:darkgreen'>source</span> = <span style='color:darkgreen'>source</span>
+        <span style='color:darkgreen'>self</span>.<span style='color:darkgreen'>_category_name</span> = <span style='color:darkgreen'>category</span>.<span style='color:darkgreen'>__name__</span> <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>category</span> <span style='color:blueviolet'>else</span> <span style='color:blueviolet'>None</span>
+
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>__str__</span>(<span style='color:darkgreen'>self</span>):
+        <span style='color:blueviolet'>return</span> (<span style='color:crimson'>"{message : %r, category : %r, filename : %r, lineno : %s, "</span>
+                    <span style='color:crimson'>"line : %r}"</span> % (<span style='color:darkgreen'>self</span>.<span style='color:darkgreen'>message</span>, <span style='color:darkgreen'>self</span>.<span style='color:darkgreen'>_category_name</span>,
+                                    <span style='color:darkgreen'>self</span>.<span style='color:darkgreen'>filename</span>, <span style='color:darkgreen'>self</span>.<span style='color:darkgreen'>lineno</span>, <span style='color:darkgreen'>self</span>.<span style='color:darkgreen'>line</span>))
+
+
+<span style='color:blueviolet'>class</span> <span style='color:darkgreen'>catch_warnings</span>(<span style='color:darkgreen'>object</span>):
+
+    <span style='color:crimson'>"""A context manager that copies and restores the warnings filter upon
+    exiting the context.
+    The 'record' argument specifies whether warnings should be captured by a
+    custom implementation of warnings.showwarning() and be appended to a list
+    returned by the context manager. Otherwise None is returned by the context
+    manager. The objects appended to the list are arguments whose attributes
+    mirror the arguments to showwarning().
+    The 'module' argument is to specify an alternative module to the module
+    named 'warnings' and imported under that name. This argument is only useful
+    when testing the warnings module itself.
+    """</span>
+
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>__init__</span>(<span style='color:darkgreen'>self</span>, *, <span style='color:darkgreen'>record</span>=<span style='color:blueviolet'>False</span>, <span style='color:darkgreen'>module</span>=<span style='color:blueviolet'>None</span>):
+        <span style='color:crimson'>"""Specify whether to record warnings and if an alternative module
+        should be used other than sys.modules['warnings'].
+        For compatibility with Python 3.0, please consider all arguments to be
+        keyword-only.
+        """</span>
+        <span style='color:darkgreen'>self</span>.<span style='color:darkgreen'>_record</span> = <span style='color:darkgreen'>record</span>
+        <span style='color:darkgreen'>self</span>.<span style='color:darkgreen'>_module</span> = <span style='color:darkgreen'>sys</span>.<span style='color:darkgreen'>modules</span>[<span style='color:crimson'>'warnings'</span>] <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>module</span> <span style='color:blueviolet'>is</span> <span style='color:blueviolet'>None</span> <span style='color:blueviolet'>else</span> <span style='color:darkgreen'>module</span>
+        <span style='color:darkgreen'>self</span>.<span style='color:darkgreen'>_entered</span> = <span style='color:blueviolet'>False</span>
+
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>__repr__</span>(<span style='color:darkgreen'>self</span>):
+        <span style='color:darkgreen'>args</span> = []
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>self</span>.<span style='color:darkgreen'>_record</span>:
+            <span style='color:darkgreen'>args</span>.<span style='color:darkgreen'>append</span>(<span style='color:crimson'>"record=True"</span>)
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>self</span>.<span style='color:darkgreen'>_module</span> <span style='color:blueviolet'>is</span> <span style='color:blueviolet'>not</span> <span style='color:darkgreen'>sys</span>.<span style='color:darkgreen'>modules</span>[<span style='color:crimson'>'warnings'</span>]:
+            <span style='color:darkgreen'>args</span>.<span style='color:darkgreen'>append</span>(<span style='color:crimson'>"module=%r"</span> % <span style='color:darkgreen'>self</span>.<span style='color:darkgreen'>_module</span>)
+        <span style='color:darkgreen'>name</span> = <span style='color:darkgreen'>type</span>(<span style='color:darkgreen'>self</span>).<span style='color:darkgreen'>__name__</span>
+        <span style='color:blueviolet'>return</span> <span style='color:crimson'>"%s(%s)"</span> % (<span style='color:darkgreen'>name</span>, <span style='color:crimson'>", "</span>.<span style='color:darkgreen'>join</span>(<span style='color:darkgreen'>args</span>))
+
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>__enter__</span>(<span style='color:darkgreen'>self</span>):
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>self</span>.<span style='color:darkgreen'>_entered</span>:
+            <span style='color:blueviolet'>raise</span> <span style='color:darkgreen'>RuntimeError</span>(<span style='color:crimson'>"Cannot enter %r twice"</span> % <span style='color:darkgreen'>self</span>)
+        <span style='color:darkgreen'>self</span>.<span style='color:darkgreen'>_entered</span> = <span style='color:blueviolet'>True</span>
+        <span style='color:darkgreen'>self</span>.<span style='color:darkgreen'>_filters</span> = <span style='color:darkgreen'>self</span>.<span style='color:darkgreen'>_module</span>.<span style='color:darkgreen'>filters</span>
+        <span style='color:darkgreen'>self</span>.<span style='color:darkgreen'>_module</span>.<span style='color:darkgreen'>filters</span> = <span style='color:darkgreen'>self</span>.<span style='color:darkgreen'>_filters</span>[:]
+        <span style='color:darkgreen'>self</span>.<span style='color:darkgreen'>_module</span>.<span style='color:darkgreen'>_filters_mutated</span>()
+        <span style='color:darkgreen'>self</span>.<span style='color:darkgreen'>_showwarning</span> = <span style='color:darkgreen'>self</span>.<span style='color:darkgreen'>_module</span>.<span style='color:darkgreen'>showwarning</span>
+        <span style='color:darkgreen'>self</span>.<span style='color:darkgreen'>_showwarnmsg_impl</span> = <span style='color:darkgreen'>self</span>.<span style='color:darkgreen'>_module</span>.<span style='color:darkgreen'>_showwarnmsg_impl</span>
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>self</span>.<span style='color:darkgreen'>_record</span>:
+            <span style='color:darkgreen'>log</span> = []
+            <span style='color:darkgreen'>self</span>.<span style='color:darkgreen'>_module</span>.<span style='color:darkgreen'>_showwarnmsg_impl</span> = <span style='color:darkgreen'>log</span>.<span style='color:darkgreen'>append</span>
+            <span style='color:darkblue'># Reset showwarning() to the default implementation to make sure</span>
+            <span style='color:darkblue'># that _showwarnmsg() calls _showwarnmsg_impl()</span>
+            <span style='color:darkgreen'>self</span>.<span style='color:darkgreen'>_module</span>.<span style='color:darkgreen'>showwarning</span> = <span style='color:darkgreen'>self</span>.<span style='color:darkgreen'>_module</span>.<span style='color:darkgreen'>_showwarning_orig</span>
+            <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>log</span>
+        <span style='color:blueviolet'>else</span>:
+            <span style='color:blueviolet'>return</span> <span style='color:blueviolet'>None</span>
+
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>__exit__</span>(<span style='color:darkgreen'>self</span>, *<span style='color:darkgreen'>exc_info</span>):
+        <span style='color:blueviolet'>if</span> <span style='color:blueviolet'>not</span> <span style='color:darkgreen'>self</span>.<span style='color:darkgreen'>_entered</span>:
+            <span style='color:blueviolet'>raise</span> <span style='color:darkgreen'>RuntimeError</span>(<span style='color:crimson'>"Cannot exit %r without entering first"</span> % <span style='color:darkgreen'>self</span>)
+        <span style='color:darkgreen'>self</span>.<span style='color:darkgreen'>_module</span>.<span style='color:darkgreen'>filters</span> = <span style='color:darkgreen'>self</span>.<span style='color:darkgreen'>_filters</span>
+        <span style='color:darkgreen'>self</span>.<span style='color:darkgreen'>_module</span>.<span style='color:darkgreen'>_filters_mutated</span>()
+        <span style='color:darkgreen'>self</span>.<span style='color:darkgreen'>_module</span>.<span style='color:darkgreen'>showwarning</span> = <span style='color:darkgreen'>self</span>.<span style='color:darkgreen'>_showwarning</span>
+        <span style='color:darkgreen'>self</span>.<span style='color:darkgreen'>_module</span>.<span style='color:darkgreen'>_showwarnmsg_impl</span> = <span style='color:darkgreen'>self</span>.<span style='color:darkgreen'>_showwarnmsg_impl</span>
+
+
+<span style='color:darkblue'># Private utility function called by _PyErr_WarnUnawaitedCoroutine</span>
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>_warn_unawaited_coroutine</span>(<span style='color:darkgreen'>coro</span>):
+    <span style='color:darkgreen'>msg_lines</span> = [
+        <span style='color:crimson'>f"coroutine '{coro.__qualname__}' was never awaited\n"</span>
+    ]
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>coro</span>.<span style='color:darkgreen'>cr_origin</span> <span style='color:blueviolet'>is</span> <span style='color:blueviolet'>not</span> <span style='color:blueviolet'>None</span>:
+        <span style='color:blueviolet'>import</span> <span style='color:darkgreen'>linecache</span>, <span style='color:darkgreen'>traceback</span>
+        <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>extract</span>():
+            <span style='color:blueviolet'>for</span> <span style='color:darkgreen'>filename</span>, <span style='color:darkgreen'>lineno</span>, <span style='color:darkgreen'>funcname</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>reversed</span>(<span style='color:darkgreen'>coro</span>.<span style='color:darkgreen'>cr_origin</span>):
+                <span style='color:darkgreen'>line</span> = <span style='color:darkgreen'>linecache</span>.<span style='color:darkgreen'>getline</span>(<span style='color:darkgreen'>filename</span>, <span style='color:darkgreen'>lineno</span>)
+                <span style='color:blueviolet'>yield</span> (<span style='color:darkgreen'>filename</span>, <span style='color:darkgreen'>lineno</span>, <span style='color:darkgreen'>funcname</span>, <span style='color:darkgreen'>line</span>)
+        <span style='color:darkgreen'>msg_lines</span>.<span style='color:darkgreen'>append</span>(<span style='color:crimson'>"Coroutine created at (most recent call last)\n"</span>)
+        <span style='color:darkgreen'>msg_lines</span> += <span style='color:darkgreen'>traceback</span>.<span style='color:darkgreen'>format_list</span>(<span style='color:darkgreen'>list</span>(<span style='color:darkgreen'>extract</span>()))
+    <span style='color:darkgreen'>msg</span> = <span style='color:crimson'>""</span>.<span style='color:darkgreen'>join</span>(<span style='color:darkgreen'>msg_lines</span>).<span style='color:darkgreen'>rstrip</span>(<span style='color:crimson'>"\n"</span>)
+    <span style='color:darkblue'># Passing source= here means that if the user happens to have tracemalloc</span>
+    <span style='color:darkblue'># enabled and tracking where the coroutine was created, the warning will</span>
+    <span style='color:darkblue'># contain that traceback. This does mean that if they have *both*</span>
+    <span style='color:darkblue'># coroutine origin tracking *and* tracemalloc enabled, they'll get two</span>
+    <span style='color:darkblue'># partially-redundant tracebacks. If we wanted to be clever we could</span>
+    <span style='color:darkblue'># probably detect this case and avoid it, but for now we don't bother.</span>
+    <span style='color:darkgreen'>warn</span>(<span style='color:darkgreen'>msg</span>, <span style='color:darkgreen'>category</span>=<span style='color:darkgreen'>RuntimeWarning</span>, <span style='color:darkgreen'>stacklevel</span>=2, <span style='color:darkgreen'>source</span>=<span style='color:darkgreen'>coro</span>)
+
+
+<span style='color:darkblue'># filters contains a sequence of filter 5-tuples</span>
+<span style='color:darkblue'># The components of the 5-tuple are:</span>
+<span style='color:darkblue'># - an action: error, ignore, always, default, module, or once</span>
+<span style='color:darkblue'># - a compiled regex that must match the warning message</span>
+<span style='color:darkblue'># - a class representing the warning category</span>
+<span style='color:darkblue'># - a compiled regex that must match the module that is being warned</span>
+<span style='color:darkblue'># - a line number for the line being warning, or 0 to mean any line</span>
+<span style='color:darkblue'># If either if the compiled regexs are None, match anything.</span>
+<span style='color:blueviolet'>try</span>:
+    <span style='color:blueviolet'>from</span> <span style='color:darkgreen'>_warnings</span> <span style='color:blueviolet'>import</span> (<span style='color:darkgreen'>filters</span>, <span style='color:darkgreen'>_defaultaction</span>, <span style='color:darkgreen'>_onceregistry</span>,
+                           <span style='color:darkgreen'>warn</span>, <span style='color:darkgreen'>warn_explicit</span>, <span style='color:darkgreen'>_filters_mutated</span>)
+    <span style='color:darkgreen'>defaultaction</span> = <span style='color:darkgreen'>_defaultaction</span>
+    <span style='color:darkgreen'>onceregistry</span> = <span style='color:darkgreen'>_onceregistry</span>
+    <span style='color:darkgreen'>_warnings_defaults</span> = <span style='color:blueviolet'>True</span>
+<span style='color:blueviolet'>except</span> <span style='color:darkgreen'>ImportError</span>:
+    <span style='color:darkgreen'>filters</span> = []
+    <span style='color:darkgreen'>defaultaction</span> = <span style='color:crimson'>"default"</span>
+    <span style='color:darkgreen'>onceregistry</span> = {}
+
+    <span style='color:darkgreen'>_filters_version</span> = 1
+
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>_filters_mutated</span>():
+        <span style='color:blueviolet'>global</span> <span style='color:darkgreen'>_filters_version</span>
+        <span style='color:darkgreen'>_filters_version</span> += 1
+
+    <span style='color:darkgreen'>_warnings_defaults</span> = <span style='color:blueviolet'>False</span>
+
+
+<span style='color:darkblue'># Module initialization</span>
+<span style='color:darkgreen'>_processoptions</span>(<span style='color:darkgreen'>sys</span>.<span style='color:darkgreen'>warnoptions</span>)
+<span style='color:blueviolet'>if</span> <span style='color:blueviolet'>not</span> <span style='color:darkgreen'>_warnings_defaults</span>:
+    <span style='color:darkblue'># Several warning categories are ignored by default in regular builds</span>
+    <span style='color:blueviolet'>if</span> <span style='color:blueviolet'>not</span> <span style='color:darkgreen'>hasattr</span>(<span style='color:darkgreen'>sys</span>, <span style='color:crimson'>'gettotalrefcount'</span>):
+        <span style='color:darkgreen'>filterwarnings</span>(<span style='color:crimson'>"default"</span>, <span style='color:darkgreen'>category</span>=<span style='color:darkgreen'>DeprecationWarning</span>,
+                       <span style='color:darkgreen'>module</span>=<span style='color:crimson'>"__main__"</span>, <span style='color:darkgreen'>append</span>=1)
+        <span style='color:darkgreen'>simplefilter</span>(<span style='color:crimson'>"ignore"</span>, <span style='color:darkgreen'>category</span>=<span style='color:darkgreen'>DeprecationWarning</span>, <span style='color:darkgreen'>append</span>=1)
+        <span style='color:darkgreen'>simplefilter</span>(<span style='color:crimson'>"ignore"</span>, <span style='color:darkgreen'>category</span>=<span style='color:darkgreen'>PendingDeprecationWarning</span>, <span style='color:darkgreen'>append</span>=1)
+        <span style='color:darkgreen'>simplefilter</span>(<span style='color:crimson'>"ignore"</span>, <span style='color:darkgreen'>category</span>=<span style='color:darkgreen'>ImportWarning</span>, <span style='color:darkgreen'>append</span>=1)
+        <span style='color:darkgreen'>simplefilter</span>(<span style='color:crimson'>"ignore"</span>, <span style='color:darkgreen'>category</span>=<span style='color:darkgreen'>ResourceWarning</span>, <span style='color:darkgreen'>append</span>=1)
+
+<span style='color:blueviolet'>del</span> <span style='color:darkgreen'>_warnings_defaults</span>
+
+        </pre>
+    </body>
+</html>
