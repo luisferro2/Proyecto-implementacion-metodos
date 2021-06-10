@@ -31,14 +31,14 @@ printable -- a string containing all ASCII characters considered printable
 <span style='color:darkgreen'>digits</span> <span style='color:deepskyblue'>=</span> <span style='color:crimson'>'0123456789'</span>
 <span style='color:darkgreen'>hexdigits</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>digits</span> <span style='color:fuchsia'>+</span> <span style='color:crimson'>'abcdef'</span> <span style='color:fuchsia'>+</span> <span style='color:crimson'>'ABCDEF'</span>
 <span style='color:darkgreen'>octdigits</span> <span style='color:deepskyblue'>=</span> <span style='color:crimson'>'01234567'</span>
-<span style='color:darkgreen'>punctuation</span> <span style='color:deepskyblue'>=</span> <span style='color:crimson'>r""</span><span style='color:crimson'>"!"</span><span style='color:darkblue'>#$%&'()*+,-./:;<=>?@[\]^_`{|}~"""</span>
+<span style='color:darkgreen'>punctuation</span> <span style='color:deepskyblue'>=</span> <span style='color:crimson'>r""</span><span style='color:crimson'>"!"</span><span style='color:darkblue'>#$%&amp'()*+,-./:;&lt=&gt?@[\]^_`{|}~"""</span>
 <span style='color:darkgreen'>printable</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>digits</span> <span style='color:fuchsia'>+</span> <span style='color:darkgreen'>ascii_letters</span> <span style='color:fuchsia'>+</span> <span style='color:darkgreen'>punctuation</span> <span style='color:fuchsia'>+</span> <span style='color:darkgreen'>whitespace</span>
 
 <span style='color:darkblue'># Functions which aren't available as string methods.</span>
 
-<span style='color:darkblue'># Capitalize the words in a string, e.g. " aBc  dEf " -> "Abc Def".</span>
+<span style='color:darkblue'># Capitalize the words in a string, e.g. " aBc  dEf " -&gt "Abc Def".</span>
 <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>capwords</span>(<span style='color:darkgreen'>s</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>sep</span><span style='color:deepskyblue'>=</span><span style='color:blueviolet'>None</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
-    <span style='color:crimson'>"""capwords(s [,sep]) -> string
+    <span style='color:crimson'>"""capwords(s [,sep]) -&gt string
     Split the argument into words using split, capitalize each
     word using capitalize, and join the capitalized words using
     join.  If the optional second argument sep is absent or None,
@@ -77,10 +77,10 @@ printable -- a string containing all ASCII characters considered printable
             <span style='color:darkgreen'>bid</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>cls</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>braceidpattern</span> <span style='color:blueviolet'>or</span> <span style='color:darkgreen'>cls</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>idpattern</span>
             <span style='color:darkgreen'>pattern</span> <span style='color:deepskyblue'>=</span> <span style='color:crimson'>fr"""
             {delim}(?:
-              (?P<escaped>{delim})  |   # Escape sequence of two delimiters
-              (?P<named>{id})       |   # delimiter and a Python identifier
-              {{(?P<braced>{bid})}} |   # delimiter and a braced identifier
-              (?P<invalid>)             # Other ill-formed delimiter exprs
+              (?P&ltescaped&gt{delim})  |   # Escape sequence of two delimiters
+              (?P&ltnamed&gt{id})       |   # delimiter and a Python identifier
+              {{(?P&ltbraced&gt{bid})}} |   # delimiter and a braced identifier
+              (?P&ltinvalid&gt)             # Other ill-formed delimiter exprs
             )
             """</span>
         <span style='color:darkgreen'>cls</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>pattern</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>_re</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>compile</span>(<span style='color:darkgreen'>pattern</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>cls</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>flags</span> <span style='color:fuchsia'>|</span> <span style='color:darkgreen'>_re</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>VERBOSE</span><span style='color:deepskyblue'>)</span>
@@ -169,7 +169,7 @@ printable -- a string containing all ASCII characters considered printable
 
     <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>_vformat</span>(<span style='color:darkgreen'>self</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>format_string</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>args</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>kwargs</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>used_args</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>recursion_depth</span><span style='color:deepskyblue'>,</span>
                  <span style='color:darkgreen'>auto_arg_index</span><span style='color:deepskyblue'>=</span><span style='color:turquoise'>0</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
-        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>recursion_depth</span> <span style='color:fuchsia'><</span> <span style='color:turquoise'>0</span><span style='color:deepskyblue'>:</span>
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>recursion_depth</span> <span style='color:fuchsia'>&lt</span> <span style='color:turquoise'>0</span><span style='color:deepskyblue'>:</span>
             <span style='color:blueviolet'>raise</span> <span style='color:darkgreen'>ValueError</span>(<span style='color:crimson'>'Max string recursion exceeded'</span><span style='color:deepskyblue'>)</span>
         <span style='color:darkgreen'>result</span> <span style='color:deepskyblue'>=</span> <span style='color:deepskyblue'>[</span><span style='color:deepskyblue'>]</span>
         <span style='color:blueviolet'>for</span> <span style='color:darkgreen'>literal_text</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>field_name</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>format_spec</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>conversion</span> <span style='color:blueviolet'>in</span> <span style='color:deepskyblue'>\</span>

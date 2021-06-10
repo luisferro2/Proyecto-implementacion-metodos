@@ -17,12 +17,12 @@ setup.cfg.template for more information.
 <span style='color:darkgreen'>py_min_version</span> <span style='color:deepskyblue'>=</span> (<span style='color:turquoise'>3</span><span style='color:deepskyblue'>,</span> <span style='color:turquoise'>7</span><span style='color:deepskyblue'>)</span>  <span style='color:darkblue'># minimal supported python version</span>
 <span style='color:darkgreen'>since_mpl_version</span> <span style='color:deepskyblue'>=</span> (<span style='color:turquoise'>3</span><span style='color:deepskyblue'>,</span> <span style='color:turquoise'>4</span><span style='color:deepskyblue'>)</span>  <span style='color:darkblue'># py_min_version is required since this mpl version</span>
 
-<span style='color:blueviolet'>if</span> <span style='color:darkgreen'>sys</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>version_info</span> <span style='color:fuchsia'><</span> <span style='color:darkgreen'>py_min_version</span><span style='color:deepskyblue'>:</span>
+<span style='color:blueviolet'>if</span> <span style='color:darkgreen'>sys</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>version_info</span> <span style='color:fuchsia'>&lt</span> <span style='color:darkgreen'>py_min_version</span><span style='color:deepskyblue'>:</span>
     <span style='color:darkgreen'>error</span> <span style='color:deepskyblue'>=</span> <span style='color:crimson'>"""
 Beginning with Matplotlib {0}, Python {1} or above is required.
 You are using Python {2}.
 This may be due to an out of date pip.
-Make sure you have pip >= 9.0.1.
+Make sure you have pip &gt= 9.0.1.
 """</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>format</span>(<span style='color:crimson'>'.'</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>join</span>(<span style='color:darkgreen'>str</span>(<span style='color:darkgreen'>n</span><span style='color:deepskyblue'>)</span> <span style='color:blueviolet'>for</span> <span style='color:darkgreen'>n</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>since_mpl_version</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span>
            <span style='color:crimson'>'.'</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>join</span>(<span style='color:darkgreen'>str</span>(<span style='color:darkgreen'>n</span><span style='color:deepskyblue'>)</span> <span style='color:blueviolet'>for</span> <span style='color:darkgreen'>n</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>py_min_version</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span>
            <span style='color:crimson'>'.'</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>join</span>(<span style='color:darkgreen'>str</span>(<span style='color:darkgreen'>n</span><span style='color:deepskyblue'>)</span> <span style='color:blueviolet'>for</span> <span style='color:darkgreen'>n</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>sys</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>version_info</span><span style='color:deepskyblue'>[</span><span style='color:deepskyblue'>:</span><span style='color:turquoise'>3</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
@@ -318,23 +318,23 @@ Make sure you have pip >= 9.0.1.
     <span style='color:darkgreen'>ext_modules</span><span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>[</span><span style='color:darkgreen'>Extension</span>(<span style='color:crimson'>""</span><span style='color:deepskyblue'>,</span> <span style='color:deepskyblue'>[</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>,</span>
     <span style='color:darkgreen'>package_data</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>package_data</span><span style='color:deepskyblue'>,</span>
 
-    <span style='color:darkgreen'>python_requires</span><span style='color:deepskyblue'>=</span><span style='color:crimson'>'>={}'</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>format</span>(<span style='color:crimson'>'.'</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>join</span>(<span style='color:darkgreen'>str</span>(<span style='color:darkgreen'>n</span><span style='color:deepskyblue'>)</span> <span style='color:blueviolet'>for</span> <span style='color:darkgreen'>n</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>py_min_version</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span>
+    <span style='color:darkgreen'>python_requires</span><span style='color:deepskyblue'>=</span><span style='color:crimson'>'&gt={}'</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>format</span>(<span style='color:crimson'>'.'</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>join</span>(<span style='color:darkgreen'>str</span>(<span style='color:darkgreen'>n</span><span style='color:deepskyblue'>)</span> <span style='color:blueviolet'>for</span> <span style='color:darkgreen'>n</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>py_min_version</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span>
     <span style='color:darkgreen'>setup_requires</span><span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>[</span>
-        <span style='color:crimson'>"certifi>=2020.06.20"</span><span style='color:deepskyblue'>,</span>
-        <span style='color:crimson'>"numpy>=1.17"</span><span style='color:deepskyblue'>,</span>
-        <span style='color:crimson'>"setuptools_scm>=4"</span><span style='color:deepskyblue'>,</span>
+        <span style='color:crimson'>"certifi&gt=2020.06.20"</span><span style='color:deepskyblue'>,</span>
+        <span style='color:crimson'>"numpy&gt=1.17"</span><span style='color:deepskyblue'>,</span>
+        <span style='color:crimson'>"setuptools_scm&gt=4"</span><span style='color:deepskyblue'>,</span>
         <span style='color:crimson'>"setuptools_scm_git_archive"</span><span style='color:deepskyblue'>,</span>
     <span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>,</span>
     <span style='color:darkgreen'>install_requires</span><span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>[</span>
-        <span style='color:crimson'>"cycler>=0.10"</span><span style='color:deepskyblue'>,</span>
-        <span style='color:crimson'>"kiwisolver>=1.0.1"</span><span style='color:deepskyblue'>,</span>
-        <span style='color:crimson'>"numpy>=1.17"</span><span style='color:deepskyblue'>,</span>
-        <span style='color:crimson'>"pillow>=6.2.0"</span><span style='color:deepskyblue'>,</span>
-        <span style='color:crimson'>"pyparsing>=2.2.1"</span><span style='color:deepskyblue'>,</span>
-        <span style='color:crimson'>"python-dateutil>=2.7"</span><span style='color:deepskyblue'>,</span>
+        <span style='color:crimson'>"cycler&gt=0.10"</span><span style='color:deepskyblue'>,</span>
+        <span style='color:crimson'>"kiwisolver&gt=1.0.1"</span><span style='color:deepskyblue'>,</span>
+        <span style='color:crimson'>"numpy&gt=1.17"</span><span style='color:deepskyblue'>,</span>
+        <span style='color:crimson'>"pillow&gt=6.2.0"</span><span style='color:deepskyblue'>,</span>
+        <span style='color:crimson'>"pyparsing&gt=2.2.1"</span><span style='color:deepskyblue'>,</span>
+        <span style='color:crimson'>"python-dateutil&gt=2.7"</span><span style='color:deepskyblue'>,</span>
     <span style='color:deepskyblue'>]</span> <span style='color:fuchsia'>+</span> (
         <span style='color:darkblue'># Installing from a git checkout.</span>
-        <span style='color:deepskyblue'>[</span><span style='color:crimson'>"setuptools_scm>=4"</span><span style='color:deepskyblue'>]</span> <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>Path</span>(<span style='color:darkgreen'>__file__</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>with_name</span>(<span style='color:crimson'>".git"</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>exists</span>(<span style='color:deepskyblue'>)</span>
+        <span style='color:deepskyblue'>[</span><span style='color:crimson'>"setuptools_scm&gt=4"</span><span style='color:deepskyblue'>]</span> <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>Path</span>(<span style='color:darkgreen'>__file__</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>with_name</span>(<span style='color:crimson'>".git"</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>exists</span>(<span style='color:deepskyblue'>)</span>
         <span style='color:blueviolet'>else</span> <span style='color:deepskyblue'>[</span><span style='color:deepskyblue'>]</span>
     <span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span>
     <span style='color:darkgreen'>use_scm_version</span><span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>{</span>

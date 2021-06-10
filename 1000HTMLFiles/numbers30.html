@@ -147,7 +147,7 @@ TODO: Fill out more detailed documentation on the operators."""</span>
 <span style='color:blueviolet'>class</span> <span style='color:darkgreen'>Real</span>(<span style='color:darkgreen'>Complex</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
     <span style='color:crimson'>"""To Complex, Real adds the operations that work on real numbers.
     In short, those are: a conversion to float, trunc(), divmod,
-    %, <, <=, >, and >=.
+    %, &lt, &lt=, &gt, and &gt=.
     Real also provides defaults for the derived operations.
     """</span>
 
@@ -163,22 +163,22 @@ TODO: Fill out more detailed documentation on the operators."""</span>
     <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>__trunc__</span>(<span style='color:darkgreen'>self</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
         <span style='color:crimson'>"""trunc(self): Truncates self to an Integral.
         Returns an Integral i such that:
-          * i>0 iff self>0;
-          * abs(i) <= abs(self);
+          * i&gt0 iff self&gt0;
+          * abs(i) &lt= abs(self);
           * for any Integral j satisfying the first two conditions,
-            abs(i) >= abs(j) [i.e. i has "maximal" abs among those].
+            abs(i) &gt= abs(j) [i.e. i has "maximal" abs among those].
         i.e. "truncate towards 0".
         """</span>
         <span style='color:blueviolet'>raise</span> <span style='color:darkgreen'>NotImplementedError</span>
 
     <span style='color:deepskyblue'>@</span><span style='color:darkgreen'>abstractmethod</span>
     <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>__floor__</span>(<span style='color:darkgreen'>self</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
-        <span style='color:crimson'>"""Finds the greatest Integral <= self."""</span>
+        <span style='color:crimson'>"""Finds the greatest Integral &lt= self."""</span>
         <span style='color:blueviolet'>raise</span> <span style='color:darkgreen'>NotImplementedError</span>
 
     <span style='color:deepskyblue'>@</span><span style='color:darkgreen'>abstractmethod</span>
     <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>__ceil__</span>(<span style='color:darkgreen'>self</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
-        <span style='color:crimson'>"""Finds the least Integral >= self."""</span>
+        <span style='color:crimson'>"""Finds the least Integral &gt= self."""</span>
         <span style='color:blueviolet'>raise</span> <span style='color:darkgreen'>NotImplementedError</span>
 
     <span style='color:deepskyblue'>@</span><span style='color:darkgreen'>abstractmethod</span>
@@ -225,13 +225,13 @@ TODO: Fill out more detailed documentation on the operators."""</span>
 
     <span style='color:deepskyblue'>@</span><span style='color:darkgreen'>abstractmethod</span>
     <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>__lt__</span>(<span style='color:darkgreen'>self</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>other</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
-        <span style='color:crimson'>"""self < other
-        < on Reals defines a total ordering, except perhaps for NaN."""</span>
+        <span style='color:crimson'>"""self &lt other
+        &lt on Reals defines a total ordering, except perhaps for NaN."""</span>
         <span style='color:blueviolet'>raise</span> <span style='color:darkgreen'>NotImplementedError</span>
 
     <span style='color:deepskyblue'>@</span><span style='color:darkgreen'>abstractmethod</span>
     <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>__le__</span>(<span style='color:darkgreen'>self</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>other</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
-        <span style='color:crimson'>"""self <= other"""</span>
+        <span style='color:crimson'>"""self &lt= other"""</span>
         <span style='color:blueviolet'>raise</span> <span style='color:darkgreen'>NotImplementedError</span>
 
     <span style='color:darkblue'># Concrete implementations of Complex abstract methods.</span>
@@ -302,7 +302,7 @@ TODO: Fill out more detailed documentation on the operators."""</span>
     <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>__pow__</span>(<span style='color:darkgreen'>self</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>exponent</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>modulus</span><span style='color:deepskyblue'>=</span><span style='color:blueviolet'>None</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
         <span style='color:crimson'>"""self ** exponent % modulus, but maybe faster.
         Accept the modulus argument if you want to support the
-        3-argument version of pow(). Raise a TypeError if exponent < 0
+        3-argument version of pow(). Raise a TypeError if exponent &lt 0
         or any argument isn't Integral. Otherwise, just implement the
         2-argument version described in Complex.
         """</span>
@@ -310,32 +310,32 @@ TODO: Fill out more detailed documentation on the operators."""</span>
 
     <span style='color:deepskyblue'>@</span><span style='color:darkgreen'>abstractmethod</span>
     <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>__lshift__</span>(<span style='color:darkgreen'>self</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>other</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
-        <span style='color:crimson'>"""self << other"""</span>
+        <span style='color:crimson'>"""self &lt&lt other"""</span>
         <span style='color:blueviolet'>raise</span> <span style='color:darkgreen'>NotImplementedError</span>
 
     <span style='color:deepskyblue'>@</span><span style='color:darkgreen'>abstractmethod</span>
     <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>__rlshift__</span>(<span style='color:darkgreen'>self</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>other</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
-        <span style='color:crimson'>"""other << self"""</span>
+        <span style='color:crimson'>"""other &lt&lt self"""</span>
         <span style='color:blueviolet'>raise</span> <span style='color:darkgreen'>NotImplementedError</span>
 
     <span style='color:deepskyblue'>@</span><span style='color:darkgreen'>abstractmethod</span>
     <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>__rshift__</span>(<span style='color:darkgreen'>self</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>other</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
-        <span style='color:crimson'>"""self >> other"""</span>
+        <span style='color:crimson'>"""self &gt&gt other"""</span>
         <span style='color:blueviolet'>raise</span> <span style='color:darkgreen'>NotImplementedError</span>
 
     <span style='color:deepskyblue'>@</span><span style='color:darkgreen'>abstractmethod</span>
     <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>__rrshift__</span>(<span style='color:darkgreen'>self</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>other</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
-        <span style='color:crimson'>"""other >> self"""</span>
+        <span style='color:crimson'>"""other &gt&gt self"""</span>
         <span style='color:blueviolet'>raise</span> <span style='color:darkgreen'>NotImplementedError</span>
 
     <span style='color:deepskyblue'>@</span><span style='color:darkgreen'>abstractmethod</span>
     <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>__and__</span>(<span style='color:darkgreen'>self</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>other</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
-        <span style='color:crimson'>"""self & other"""</span>
+        <span style='color:crimson'>"""self &amp other"""</span>
         <span style='color:blueviolet'>raise</span> <span style='color:darkgreen'>NotImplementedError</span>
 
     <span style='color:deepskyblue'>@</span><span style='color:darkgreen'>abstractmethod</span>
     <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>__rand__</span>(<span style='color:darkgreen'>self</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>other</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
-        <span style='color:crimson'>"""other & self"""</span>
+        <span style='color:crimson'>"""other &amp self"""</span>
         <span style='color:blueviolet'>raise</span> <span style='color:darkgreen'>NotImplementedError</span>
 
     <span style='color:deepskyblue'>@</span><span style='color:darkgreen'>abstractmethod</span>

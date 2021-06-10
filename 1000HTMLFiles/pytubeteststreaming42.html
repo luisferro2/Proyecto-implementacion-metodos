@@ -111,7 +111,7 @@
 
 
 <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>test_views</span>(<span style='color:darkgreen'>cipher_signature</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
-    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>cipher_signature</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>views</span> <span style='color:deepskyblue'>>=</span> <span style='color:turquoise'>108531745</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>cipher_signature</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>views</span> <span style='color:deepskyblue'>&gt=</span> <span style='color:turquoise'>108531745</span>
 
 
 <span style='color:deepskyblue'>@</span><span style='color:darkgreen'>mock</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>patch</span>(
@@ -281,8 +281,8 @@
 <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>test_repr_for_audio_streams</span>(<span style='color:darkgreen'>cipher_signature</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
     <span style='color:darkgreen'>stream</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>str</span>(<span style='color:darkgreen'>cipher_signature</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>streams</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>filter</span>(<span style='color:darkgreen'>only_audio</span><span style='color:deepskyblue'>=</span><span style='color:blueviolet'>True</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>[</span><span style='color:turquoise'>0</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span>
     <span style='color:darkgreen'>expected</span> <span style='color:deepskyblue'>=</span> (
-        <span style='color:crimson'>'<Stream: itag="140" mime_type="audio/mp4" abr="128kbps" '</span>
-        <span style='color:crimson'>'acodec="mp4a.40.2" progressive="False" type="audio">'</span>
+        <span style='color:crimson'>'&ltStream: itag="140" mime_type="audio/mp4" abr="128kbps" '</span>
+        <span style='color:crimson'>'acodec="mp4a.40.2" progressive="False" type="audio"&gt'</span>
     <span style='color:deepskyblue'>)</span>
     <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>stream</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>expected</span>
 
@@ -290,8 +290,8 @@
 <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>test_repr_for_video_streams</span>(<span style='color:darkgreen'>cipher_signature</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
     <span style='color:darkgreen'>stream</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>str</span>(<span style='color:darkgreen'>cipher_signature</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>streams</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>filter</span>(<span style='color:darkgreen'>only_video</span><span style='color:deepskyblue'>=</span><span style='color:blueviolet'>True</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>[</span><span style='color:turquoise'>0</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span>
     <span style='color:darkgreen'>expected</span> <span style='color:deepskyblue'>=</span> (
-        <span style='color:crimson'>'<Stream: itag="137" mime_type="video/mp4" res="1080p" fps="24fps" '</span>
-        <span style='color:crimson'>'vcodec="avc1.640028" progressive="False" type="video">'</span>
+        <span style='color:crimson'>'&ltStream: itag="137" mime_type="video/mp4" res="1080p" fps="24fps" '</span>
+        <span style='color:crimson'>'vcodec="avc1.640028" progressive="False" type="video"&gt'</span>
     <span style='color:deepskyblue'>)</span>
     <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>stream</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>expected</span>
 
@@ -299,9 +299,9 @@
 <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>test_repr_for_progressive_streams</span>(<span style='color:darkgreen'>cipher_signature</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
     <span style='color:darkgreen'>stream</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>str</span>(<span style='color:darkgreen'>cipher_signature</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>streams</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>filter</span>(<span style='color:darkgreen'>progressive</span><span style='color:deepskyblue'>=</span><span style='color:blueviolet'>True</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>[</span><span style='color:turquoise'>0</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span>
     <span style='color:darkgreen'>expected</span> <span style='color:deepskyblue'>=</span> (
-        <span style='color:crimson'>'<Stream: itag="18" mime_type="video/mp4" res="360p" fps="24fps" '</span>
+        <span style='color:crimson'>'&ltStream: itag="18" mime_type="video/mp4" res="360p" fps="24fps" '</span>
         <span style='color:crimson'>'vcodec="avc1.42001E" acodec="mp4a.40.2" progressive="True" '</span>
-        <span style='color:crimson'>'type="video">'</span>
+        <span style='color:crimson'>'type="video"&gt'</span>
     <span style='color:deepskyblue'>)</span>
     <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>stream</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>expected</span>
 
@@ -309,8 +309,8 @@
 <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>test_repr_for_adaptive_streams</span>(<span style='color:darkgreen'>cipher_signature</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
     <span style='color:darkgreen'>stream</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>str</span>(<span style='color:darkgreen'>cipher_signature</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>streams</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>filter</span>(<span style='color:darkgreen'>adaptive</span><span style='color:deepskyblue'>=</span><span style='color:blueviolet'>True</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>[</span><span style='color:turquoise'>0</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span>
     <span style='color:darkgreen'>expected</span> <span style='color:deepskyblue'>=</span> (
-        <span style='color:crimson'>'<Stream: itag="137" mime_type="video/mp4" res="1080p" fps="24fps" '</span>
-        <span style='color:crimson'>'vcodec="avc1.640028" progressive="False" type="video">'</span>
+        <span style='color:crimson'>'&ltStream: itag="137" mime_type="video/mp4" res="1080p" fps="24fps" '</span>
+        <span style='color:crimson'>'vcodec="avc1.640028" progressive="False" type="video"&gt'</span>
     <span style='color:deepskyblue'>)</span>
     <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>stream</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>expected</span>
 
@@ -344,13 +344,13 @@
 
             <span style='color:darkblue'># Request order for stream:</span>
             <span style='color:darkblue'># Filesize:</span>
-            <span style='color:darkblue'>#   1. head(url) -> 404</span>
-            <span style='color:darkblue'>#   2. get(url&sn=0)</span>
-            <span style='color:darkblue'>#   3. head(url&sn=[1,2,3])</span>
+            <span style='color:darkblue'>#   1. head(url) -&gt 404</span>
+            <span style='color:darkblue'>#   2. get(url&ampsn=0)</span>
+            <span style='color:darkblue'>#   3. head(url&ampsn=[1,2,3])</span>
             <span style='color:darkblue'># Download:</span>
-            <span style='color:darkblue'>#   4. info(url) -> 404</span>
-            <span style='color:darkblue'>#   5. get(url&sn=0)</span>
-            <span style='color:darkblue'>#   6. get(url&sn=[1,2,3])</span>
+            <span style='color:darkblue'>#   4. info(url) -&gt 404</span>
+            <span style='color:darkblue'>#   5. get(url&ampsn=0)</span>
+            <span style='color:darkblue'>#   6. get(url&ampsn=[1,2,3])</span>
 
             <span style='color:darkblue'># Handle filesize requests</span>
             <span style='color:darkgreen'>mock_head</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>side_effect</span> <span style='color:deepskyblue'>=</span> <span style='color:deepskyblue'>[</span>

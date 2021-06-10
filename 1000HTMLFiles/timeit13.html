@@ -38,9 +38,9 @@ measured by invoking the program without arguments.
 Classes:
     Timer
 Functions:
-    timeit(string, string) -> float
-    repeat(string, string) -> list
-    default_timer() -> float
+    timeit(string, string) -&gt float
+    repeat(string, string) -&gt list
+    default_timer() -&gt float
 """</span>
 
 <span style='color:blueviolet'>import</span> <span style='color:darkgreen'>gc</span>
@@ -50,7 +50,7 @@ Functions:
 
 <span style='color:darkgreen'>__all__</span> <span style='color:deepskyblue'>=</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>"Timer"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"timeit"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"repeat"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"default_timer"</span><span style='color:deepskyblue'>]</span>
 
-<span style='color:darkgreen'>dummy_src_name</span> <span style='color:deepskyblue'>=</span> <span style='color:crimson'>"<timeit-src>"</span>
+<span style='color:darkgreen'>dummy_src_name</span> <span style='color:deepskyblue'>=</span> <span style='color:crimson'>"&lttimeit-src&gt"</span>
 <span style='color:darkgreen'>default_number</span> <span style='color:deepskyblue'>=</span> <span style='color:turquoise'>1000000</span>
 <span style='color:darkgreen'>default_repeat</span> <span style='color:deepskyblue'>=</span> <span style='color:turquoise'>5</span>
 <span style='color:darkgreen'>default_timer</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>time</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>perf_counter</span>
@@ -192,7 +192,7 @@ def inner(_it, _timer{init}):
         <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>r</span>
 
     <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>autorange</span>(<span style='color:darkgreen'>self</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>callback</span><span style='color:deepskyblue'>=</span><span style='color:blueviolet'>None</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
-        <span style='color:crimson'>"""Return the number of loops and time taken so that total time >= 0.2.
+        <span style='color:crimson'>"""Return the number of loops and time taken so that total time &gt= 0.2.
         Calls the timeit method with increasing numbers from the sequence
         1, 2, 5, 10, 20, 50, ... until the time taken is at least 0.2
         second.  Returns (number, time_taken).
@@ -206,7 +206,7 @@ def inner(_it, _timer{init}):
                 <span style='color:darkgreen'>time_taken</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>self</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>timeit</span>(<span style='color:darkgreen'>number</span><span style='color:deepskyblue'>)</span>
                 <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>callback</span><span style='color:deepskyblue'>:</span>
                     <span style='color:darkgreen'>callback</span>(<span style='color:darkgreen'>number</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>time_taken</span><span style='color:deepskyblue'>)</span>
-                <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>time_taken</span> <span style='color:deepskyblue'>>=</span> <span style='color:saddlebrown'>0.2</span><span style='color:deepskyblue'>:</span>
+                <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>time_taken</span> <span style='color:deepskyblue'>&gt=</span> <span style='color:saddlebrown'>0.2</span><span style='color:deepskyblue'>:</span>
                     <span style='color:blueviolet'>return</span> (<span style='color:darkgreen'>number</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>time_taken</span><span style='color:deepskyblue'>)</span>
             <span style='color:darkgreen'>i</span> <span style='color:deepskyblue'>*=</span> <span style='color:turquoise'>10</span>
 
@@ -269,7 +269,7 @@ def inner(_it, _timer{init}):
                 <span style='color:blueviolet'>return</span> <span style='color:turquoise'>2</span>
         <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>o</span> <span style='color:blueviolet'>in</span> (<span style='color:crimson'>"-r"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"--repeat"</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
             <span style='color:darkgreen'>repeat</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>int</span>(<span style='color:darkgreen'>a</span><span style='color:deepskyblue'>)</span>
-            <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>repeat</span> <span style='color:deepskyblue'><=</span> <span style='color:turquoise'>0</span><span style='color:deepskyblue'>:</span>
+            <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>repeat</span> <span style='color:deepskyblue'>&lt=</span> <span style='color:turquoise'>0</span><span style='color:deepskyblue'>:</span>
                 <span style='color:darkgreen'>repeat</span> <span style='color:deepskyblue'>=</span> <span style='color:turquoise'>1</span>
         <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>o</span> <span style='color:blueviolet'>in</span> (<span style='color:crimson'>"-p"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"--process"</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
             <span style='color:darkgreen'>timer</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>time</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>process_time</span>
@@ -292,11 +292,11 @@ def inner(_it, _timer{init}):
 
     <span style='color:darkgreen'>t</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>Timer</span>(<span style='color:darkgreen'>stmt</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>setup</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>timer</span><span style='color:deepskyblue'>)</span>
     <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>number</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:turquoise'>0</span><span style='color:deepskyblue'>:</span>
-        <span style='color:darkblue'># determine number so that 0.2 <= total time < 2.0</span>
+        <span style='color:darkblue'># determine number so that 0.2 &lt= total time &lt 2.0</span>
         <span style='color:darkgreen'>callback</span> <span style='color:deepskyblue'>=</span> <span style='color:blueviolet'>None</span>
         <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>verbose</span><span style='color:deepskyblue'>:</span>
             <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>callback</span>(<span style='color:darkgreen'>number</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>time_taken</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
-                <span style='color:darkgreen'>msg</span> <span style='color:deepskyblue'>=</span> <span style='color:crimson'>"{num} loop{s} -> {secs:.{prec}g} secs"</span>
+                <span style='color:darkgreen'>msg</span> <span style='color:deepskyblue'>=</span> <span style='color:crimson'>"{num} loop{s} -&gt {secs:.{prec}g} secs"</span>
                 <span style='color:darkgreen'>plural</span> <span style='color:deepskyblue'>=</span> (<span style='color:darkgreen'>number</span> <span style='color:fuchsia'>!=</span> <span style='color:turquoise'>1</span><span style='color:deepskyblue'>)</span>
                 <span style='color:darkgreen'>print</span>(<span style='color:darkgreen'>msg</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>format</span>(<span style='color:darkgreen'>num</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>number</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>s</span><span style='color:deepskyblue'>=</span><span style='color:crimson'>'s'</span> <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>plural</span> <span style='color:blueviolet'>else</span> <span style='color:crimson'>''</span><span style='color:deepskyblue'>,</span>
                                   <span style='color:darkgreen'>secs</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>time_taken</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>prec</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>precision</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
@@ -324,7 +324,7 @@ def inner(_it, _timer{init}):
             <span style='color:darkgreen'>scales</span> <span style='color:deepskyblue'>=</span> <span style='color:deepskyblue'>[</span>(<span style='color:darkgreen'>scale</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>unit</span><span style='color:deepskyblue'>)</span> <span style='color:blueviolet'>for</span> <span style='color:darkgreen'>unit</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>scale</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>units</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>items</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>]</span>
             <span style='color:darkgreen'>scales</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>sort</span>(<span style='color:darkgreen'>reverse</span><span style='color:deepskyblue'>=</span><span style='color:blueviolet'>True</span><span style='color:deepskyblue'>)</span>
             <span style='color:blueviolet'>for</span> <span style='color:darkgreen'>scale</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>unit</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>scales</span><span style='color:deepskyblue'>:</span>
-                <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>dt</span> <span style='color:deepskyblue'>>=</span> <span style='color:darkgreen'>scale</span><span style='color:deepskyblue'>:</span>
+                <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>dt</span> <span style='color:deepskyblue'>&gt=</span> <span style='color:darkgreen'>scale</span><span style='color:deepskyblue'>:</span>
                     <span style='color:blueviolet'>break</span>
 
         <span style='color:blueviolet'>return</span> <span style='color:crimson'>"%.*g %s"</span> <span style='color:fuchsia'>%</span> (<span style='color:darkgreen'>precision</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>dt</span> <span style='color:fuchsia'>/</span> <span style='color:darkgreen'>scale</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>unit</span><span style='color:deepskyblue'>)</span>
@@ -341,7 +341,7 @@ def inner(_it, _timer{init}):
 
     <span style='color:darkgreen'>best</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>min</span>(<span style='color:darkgreen'>timings</span><span style='color:deepskyblue'>)</span>
     <span style='color:darkgreen'>worst</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>max</span>(<span style='color:darkgreen'>timings</span><span style='color:deepskyblue'>)</span>
-    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>worst</span> <span style='color:deepskyblue'>>=</span> <span style='color:darkgreen'>best</span> <span style='color:fuchsia'>*</span> <span style='color:turquoise'>4</span><span style='color:deepskyblue'>:</span>
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>worst</span> <span style='color:deepskyblue'>&gt=</span> <span style='color:darkgreen'>best</span> <span style='color:fuchsia'>*</span> <span style='color:turquoise'>4</span><span style='color:deepskyblue'>:</span>
         <span style='color:blueviolet'>import</span> <span style='color:darkgreen'>warnings</span>
         <span style='color:darkgreen'>warnings</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>warn_explicit</span>(<span style='color:crimson'>"The test results are likely unreliable. "</span>
                                <span style='color:crimson'>"The worst time (%s) was more than four times "</span>

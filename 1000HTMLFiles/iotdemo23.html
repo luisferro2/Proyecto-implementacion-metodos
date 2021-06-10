@@ -5,7 +5,7 @@
     </head>
     <body>
         <pre><span style='color:darkblue'>#!/usr/bin/python3</span>
-<span style='color:darkblue'>#  * Copyright (c) 2019 TAOS Data, Inc. <jhtao@taosdata.com></span>
+<span style='color:darkblue'>#  * Copyright (c) 2019 TAOS Data, Inc. &ltjhtao@taosdata.com&gt</span>
 <span style='color:darkblue'>#  *</span>
 <span style='color:darkblue'>#  * This program is free software: you can use, redistribute, and/or modify</span>
 <span style='color:darkblue'>#  * it under the terms of the GNU Affero General Public License, version 3</span>
@@ -16,7 +16,7 @@
 <span style='color:darkblue'>#  * FITNESS FOR A PARTICULAR PURPOSE.</span>
 <span style='color:darkblue'>#  *</span>
 <span style='color:darkblue'>#  * You should have received a copy of the GNU Affero General Public License</span>
-<span style='color:darkblue'>#  * along with this program. If not, see <http://www.gnu.org/licenses/>.</span>
+<span style='color:darkblue'>#  * along with this program. If not, see &lthttp://www.gnu.org/licenses/&gt.</span>
 
 <span style='color:darkblue'># -*- coding: utf-8 -*-</span>
 
@@ -295,14 +295,14 @@
     <span style='color:darkgreen'>v_print</span>(<span style='color:crimson'>"numOfRec %d:"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>numOfRec</span><span style='color:deepskyblue'>)</span>
 
     <span style='color:darkgreen'>row</span> <span style='color:deepskyblue'>=</span> <span style='color:turquoise'>0</span>
-    <span style='color:blueviolet'>while</span> <span style='color:darkgreen'>row</span> <span style='color:fuchsia'><</span> <span style='color:darkgreen'>numOfRec</span><span style='color:deepskyblue'>:</span>
+    <span style='color:blueviolet'>while</span> <span style='color:darkgreen'>row</span> <span style='color:fuchsia'>&lt</span> <span style='color:darkgreen'>numOfRec</span><span style='color:deepskyblue'>:</span>
         <span style='color:darkgreen'>v_print</span>(<span style='color:crimson'>"row: %d"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>row</span><span style='color:deepskyblue'>)</span>
         <span style='color:darkgreen'>sqlCmd</span> <span style='color:deepskyblue'>=</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>'INSERT INTO '</span><span style='color:deepskyblue'>]</span>
         <span style='color:blueviolet'>try</span><span style='color:deepskyblue'>:</span>
             <span style='color:darkgreen'>sqlCmd</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>append</span>(
                 <span style='color:crimson'>"%s.%s%d "</span> <span style='color:fuchsia'>%</span> (<span style='color:darkgreen'>current_db</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>tbName</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>thread</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
 
-            <span style='color:blueviolet'>if</span> (<span style='color:darkgreen'>numOfStb</span> <span style='color:fuchsia'>></span> <span style='color:turquoise'>0</span> <span style='color:blueviolet'>and</span> <span style='color:darkgreen'>autosubtable</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+            <span style='color:blueviolet'>if</span> (<span style='color:darkgreen'>numOfStb</span> <span style='color:fuchsia'>&gt</span> <span style='color:turquoise'>0</span> <span style='color:blueviolet'>and</span> <span style='color:darkgreen'>autosubtable</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
                 <span style='color:darkgreen'>sqlCmd</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>append</span>(<span style='color:crimson'>"USING %s.%s%d TAGS('%s') "</span> <span style='color:fuchsia'>%</span>
                               (<span style='color:darkgreen'>current_db</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>stbName</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>numOfStb</span> <span style='color:fuchsia'>-</span> <span style='color:turquoise'>1</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>uuid</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
 
@@ -318,7 +318,7 @@
                                     <span style='color:darkgreen'>milliseconds</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>batchIter</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span>
                                   <span style='color:darkgreen'>random</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>random</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
                 <span style='color:darkgreen'>row</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>row</span> <span style='color:fuchsia'>+</span> <span style='color:turquoise'>1</span>
-                <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>row</span> <span style='color:deepskyblue'>>=</span> <span style='color:darkgreen'>numOfRec</span><span style='color:deepskyblue'>:</span>
+                <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>row</span> <span style='color:deepskyblue'>&gt=</span> <span style='color:darkgreen'>numOfRec</span><span style='color:deepskyblue'>:</span>
                     <span style='color:darkgreen'>v_print</span>(<span style='color:crimson'>"BREAK, row: %d numOfRec:%d"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>row</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>numOfRec</span><span style='color:deepskyblue'>)</span>
                     <span style='color:blueviolet'>break</span>
 
@@ -385,10 +385,10 @@
     <span style='color:darkgreen'>tasks</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>end</span> <span style='color:fuchsia'>-</span> <span style='color:darkgreen'>begin</span>
     <span style='color:darkgreen'>v_print</span>(<span style='color:crimson'>"insert_data_process:%d table from %d to %d, tasks %d"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>i</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>begin</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>end</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>tasks</span><span style='color:deepskyblue'>)</span>
 
-    <span style='color:blueviolet'>if</span> (<span style='color:darkgreen'>threads</span> <span style='color:fuchsia'><</span> (<span style='color:darkgreen'>end</span> <span style='color:fuchsia'>-</span> <span style='color:darkgreen'>begin</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:blueviolet'>if</span> (<span style='color:darkgreen'>threads</span> <span style='color:fuchsia'>&lt</span> (<span style='color:darkgreen'>end</span> <span style='color:fuchsia'>-</span> <span style='color:darkgreen'>begin</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
         <span style='color:blueviolet'>for</span> <span style='color:darkgreen'>j</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>range</span>(<span style='color:darkgreen'>begin</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>end</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>threads</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
             <span style='color:blueviolet'>with</span> <span style='color:darkgreen'>ThreadPoolExecutor</span>(<span style='color:darkgreen'>max_workers</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>threads</span><span style='color:deepskyblue'>)</span> <span style='color:blueviolet'>as</span> <span style='color:darkgreen'>executor</span><span style='color:deepskyblue'>:</span>
-                <span style='color:darkgreen'>k</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>end</span> <span style='color:blueviolet'>if</span> ((<span style='color:darkgreen'>j</span> <span style='color:fuchsia'>+</span> <span style='color:darkgreen'>threads</span><span style='color:deepskyblue'>)</span> <span style='color:fuchsia'>></span> <span style='color:darkgreen'>end</span><span style='color:deepskyblue'>)</span> <span style='color:blueviolet'>else</span> (<span style='color:darkgreen'>j</span> <span style='color:fuchsia'>+</span> <span style='color:darkgreen'>threads</span><span style='color:deepskyblue'>)</span>
+                <span style='color:darkgreen'>k</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>end</span> <span style='color:blueviolet'>if</span> ((<span style='color:darkgreen'>j</span> <span style='color:fuchsia'>+</span> <span style='color:darkgreen'>threads</span><span style='color:deepskyblue'>)</span> <span style='color:fuchsia'>&gt</span> <span style='color:darkgreen'>end</span><span style='color:deepskyblue'>)</span> <span style='color:blueviolet'>else</span> (<span style='color:darkgreen'>j</span> <span style='color:fuchsia'>+</span> <span style='color:darkgreen'>threads</span><span style='color:deepskyblue'>)</span>
                 <span style='color:darkgreen'>workers</span> <span style='color:deepskyblue'>=</span> <span style='color:deepskyblue'>[</span>
                     <span style='color:darkgreen'>executor</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>submit</span>(
                         <span style='color:darkgreen'>insert_func</span><span style='color:deepskyblue'>,</span>
@@ -527,41 +527,41 @@
             <span style='color:darkgreen'>print</span>(
                 <span style='color:crimson'>'taosdemo.py for TDengine'</span><span style='color:deepskyblue'>)</span>
             <span style='color:darkgreen'>print</span>(<span style='color:crimson'>''</span><span style='color:deepskyblue'>)</span>
-            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'Author: Shuduo Sang <sangshuduo@gmail.com>'</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'Author: Shuduo Sang &ltsangshuduo@gmail.com&gt'</span><span style='color:deepskyblue'>)</span>
             <span style='color:darkgreen'>print</span>(<span style='color:crimson'>''</span><span style='color:deepskyblue'>)</span>
 
             <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'\t-H, --help                        Show usage.'</span><span style='color:deepskyblue'>)</span>
             <span style='color:darkgreen'>print</span>(<span style='color:crimson'>''</span><span style='color:deepskyblue'>)</span>
 
             <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'\t-N, --native                      flag, Use native interface if set. Default is using RESTful interface.'</span><span style='color:deepskyblue'>)</span>
-            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'\t-h, --host <hostname>             host, The host to connect to TDengine. Default is localhost.'</span><span style='color:deepskyblue'>)</span>
-            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'\t-p, --port <port>                 port, The TCP/IP port number to use for the connection. Default is 0.'</span><span style='color:deepskyblue'>)</span>
-            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'\t-u, --user <username>             user, The user name to use when connecting to the server. Default is \'root\'.'</span><span style='color:deepskyblue'>)</span>
-            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'\t-P, --password <password>         password, The password to use when connecting to the server. Default is \'taosdata\'.'</span><span style='color:deepskyblue'>)</span>
-            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'\t-l, --colsPerRec <number>         num_of_columns_per_record, The number of columns per record. Default is 3.'</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'\t-h, --host &lthostname&gt             host, The host to connect to TDengine. Default is localhost.'</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'\t-p, --port &ltport&gt                 port, The TCP/IP port number to use for the connection. Default is 0.'</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'\t-u, --user &ltusername&gt             user, The user name to use when connecting to the server. Default is \'root\'.'</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'\t-P, --password &ltpassword&gt         password, The password to use when connecting to the server. Default is \'taosdata\'.'</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'\t-l, --colsPerRec &ltnumber&gt         num_of_columns_per_record, The number of columns per record. Default is 3.'</span><span style='color:deepskyblue'>)</span>
             <span style='color:darkgreen'>print</span>(
-                  <span style='color:crimson'>'\t-d, --dbname <dbname>             database, Destination database. Default is \'test\'.'</span><span style='color:deepskyblue'>)</span>
-            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'\t-a, --replica <replications>      replica, Set the replica parameters of the database, Default 1, min: 1, max: 5.'</span><span style='color:deepskyblue'>)</span>
+                  <span style='color:crimson'>'\t-d, --dbname &ltdbname&gt             database, Destination database. Default is \'test\'.'</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'\t-a, --replica &ltreplications&gt      replica, Set the replica parameters of the database, Default 1, min: 1, max: 5.'</span><span style='color:deepskyblue'>)</span>
             <span style='color:darkgreen'>print</span>(
-                  <span style='color:crimson'>'\t-m, --tbname <table prefix>       table_prefix, Table prefix name. Default is \'t\'.'</span><span style='color:deepskyblue'>)</span>
+                  <span style='color:crimson'>'\t-m, --tbname &lttable prefix&gt       table_prefix, Table prefix name. Default is \'t\'.'</span><span style='color:deepskyblue'>)</span>
             <span style='color:darkgreen'>print</span>(
                   <span style='color:crimson'>'\t-M, --stable                      flag, Use super table. Default is no'</span><span style='color:deepskyblue'>)</span>
             <span style='color:darkgreen'>print</span>(
-                  <span style='color:crimson'>'\t-s, --stbname <stable prefix>     stable_prefix, STable prefix name. Default is \'st\''</span><span style='color:deepskyblue'>)</span>
+                  <span style='color:crimson'>'\t-s, --stbname &ltstable prefix&gt     stable_prefix, STable prefix name. Default is \'st\''</span><span style='color:deepskyblue'>)</span>
             <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'\t-Q, --query [NO|EACHTB|command]   query, Execute query command. set \'EACHTB\' means select * from each table'</span><span style='color:deepskyblue'>)</span>
             <span style='color:darkgreen'>print</span>(
-                  <span style='color:crimson'>'\t-T, --threads <number>            num_of_threads, The number of threads. Default is 1.'</span><span style='color:deepskyblue'>)</span>
+                  <span style='color:crimson'>'\t-T, --threads &ltnumber&gt            num_of_threads, The number of threads. Default is 1.'</span><span style='color:deepskyblue'>)</span>
             <span style='color:darkgreen'>print</span>(
-                  <span style='color:crimson'>'\t-C, --processes <number>          num_of_processes, The number of threads. Default is 1.'</span><span style='color:deepskyblue'>)</span>
-            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'\t-r, --batch <number>              num_of_records_per_req, The number of records per request. Default is 1000.'</span><span style='color:deepskyblue'>)</span>
+                  <span style='color:crimson'>'\t-C, --processes &ltnumber&gt          num_of_processes, The number of threads. Default is 1.'</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'\t-r, --batch &ltnumber&gt              num_of_records_per_req, The number of records per request. Default is 1000.'</span><span style='color:deepskyblue'>)</span>
             <span style='color:darkgreen'>print</span>(
-                  <span style='color:crimson'>'\t-t, --numOfTb <number>            num_of_tables, The number of tables. Default is 1.'</span><span style='color:deepskyblue'>)</span>
-            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'\t-n, --numOfRec <number>           num_of_records_per_table, The number of records per table. Default is 1.'</span><span style='color:deepskyblue'>)</span>
-            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'\t-c, --config <path>               config_directory, Configuration directory. Default is \'/etc/taos/\'.'</span><span style='color:deepskyblue'>)</span>
+                  <span style='color:crimson'>'\t-t, --numOfTb &ltnumber&gt            num_of_tables, The number of tables. Default is 1.'</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'\t-n, --numOfRec &ltnumber&gt           num_of_records_per_table, The number of records per table. Default is 1.'</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'\t-c, --config &ltpath&gt               config_directory, Configuration directory. Default is \'/etc/taos/\'.'</span><span style='color:deepskyblue'>)</span>
             <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'\t-x, --inserOnly                   flag, Insert only flag.'</span><span style='color:deepskyblue'>)</span>
             <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'\t-O, --outOfOrder                  out of order data insert, 0: In order, 1: Out of order. Default is in order.'</span><span style='color:deepskyblue'>)</span>
-            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'\t-R, --rateOOOO <number>           rate, Out of order data\'s rate--if order=1 Default 10, min: 0, max: 50.'</span><span style='color:deepskyblue'>)</span>
-            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'\t-D, --deleteMethod <number>       Delete data methods 0: don\'t delete, 1: delete by table, 2: delete by stable, 3: delete by database.'</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'\t-R, --rateOOOO &ltnumber&gt           rate, Out of order data\'s rate--if order=1 Default 10, min: 0, max: 50.'</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'\t-D, --deleteMethod &ltnumber&gt       Delete data methods 0: don\'t delete, 1: delete by table, 2: delete by stable, 3: delete by database.'</span><span style='color:deepskyblue'>)</span>
             <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'\t-v, --verbose                     Print verbose output'</span><span style='color:deepskyblue'>)</span>
             <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'\t-g, --debug                       Print debug output'</span><span style='color:deepskyblue'>)</span>
             <span style='color:darkgreen'>print</span>(
@@ -596,8 +596,8 @@
 
         <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>key</span> <span style='color:blueviolet'>in</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>'-a'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'--replica'</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>:</span>
             <span style='color:darkgreen'>replica</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>int</span>(<span style='color:darkgreen'>value</span><span style='color:deepskyblue'>)</span>
-            <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>replica</span> <span style='color:fuchsia'><</span> <span style='color:turquoise'>1</span><span style='color:deepskyblue'>:</span>
-                <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"FATAL: number of replica need > 0"</span><span style='color:deepskyblue'>)</span>
+            <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>replica</span> <span style='color:fuchsia'>&lt</span> <span style='color:turquoise'>1</span><span style='color:deepskyblue'>:</span>
+                <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"FATAL: number of replica need &gt 0"</span><span style='color:deepskyblue'>)</span>
                 <span style='color:darkgreen'>sys</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>exit</span>(<span style='color:turquoise'>1</span><span style='color:deepskyblue'>)</span>
 
         <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>key</span> <span style='color:blueviolet'>in</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>'-m'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'--tbname'</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>:</span>
@@ -615,13 +615,13 @@
 
         <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>key</span> <span style='color:blueviolet'>in</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>'-T'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'--threads'</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>:</span>
             <span style='color:darkgreen'>threads</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>int</span>(<span style='color:darkgreen'>value</span><span style='color:deepskyblue'>)</span>
-            <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>threads</span> <span style='color:fuchsia'><</span> <span style='color:turquoise'>1</span><span style='color:deepskyblue'>:</span>
+            <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>threads</span> <span style='color:fuchsia'>&lt</span> <span style='color:turquoise'>1</span><span style='color:deepskyblue'>:</span>
                 <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"FATAL: number of threads must be larger than 0"</span><span style='color:deepskyblue'>)</span>
                 <span style='color:darkgreen'>sys</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>exit</span>(<span style='color:turquoise'>1</span><span style='color:deepskyblue'>)</span>
 
         <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>key</span> <span style='color:blueviolet'>in</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>'-C'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'--processes'</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>:</span>
             <span style='color:darkgreen'>processes</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>int</span>(<span style='color:darkgreen'>value</span><span style='color:deepskyblue'>)</span>
-            <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>processes</span> <span style='color:fuchsia'><</span> <span style='color:turquoise'>1</span><span style='color:deepskyblue'>:</span>
+            <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>processes</span> <span style='color:fuchsia'>&lt</span> <span style='color:turquoise'>1</span><span style='color:deepskyblue'>:</span>
                 <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"FATAL: number of processes must be larger than 0"</span><span style='color:deepskyblue'>)</span>
                 <span style='color:darkgreen'>sys</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>exit</span>(<span style='color:turquoise'>1</span><span style='color:deepskyblue'>)</span>
 
@@ -638,7 +638,7 @@
         <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>key</span> <span style='color:blueviolet'>in</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>'-n'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'--numOfRec'</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>:</span>
             <span style='color:darkgreen'>numOfRec</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>int</span>(<span style='color:darkgreen'>value</span><span style='color:deepskyblue'>)</span>
             <span style='color:darkgreen'>v_print</span>(<span style='color:crimson'>"numOfRec is %d"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>numOfRec</span><span style='color:deepskyblue'>)</span>
-            <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>numOfRec</span> <span style='color:fuchsia'><</span> <span style='color:turquoise'>1</span><span style='color:deepskyblue'>:</span>
+            <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>numOfRec</span> <span style='color:fuchsia'>&lt</span> <span style='color:turquoise'>1</span><span style='color:deepskyblue'>:</span>
                 <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"FATAL: number of records must be larger than 0"</span><span style='color:deepskyblue'>)</span>
                 <span style='color:darkgreen'>sys</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>exit</span>(<span style='color:turquoise'>1</span><span style='color:deepskyblue'>)</span>
 
@@ -661,7 +661,7 @@
 
         <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>key</span> <span style='color:blueviolet'>in</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>'-D'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'--deleteMethod'</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>:</span>
             <span style='color:darkgreen'>deleteMethod</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>int</span>(<span style='color:darkgreen'>value</span><span style='color:deepskyblue'>)</span>
-            <span style='color:blueviolet'>if</span> (<span style='color:darkgreen'>deleteMethod</span> <span style='color:fuchsia'><</span> <span style='color:turquoise'>0</span><span style='color:deepskyblue'>)</span> <span style='color:blueviolet'>or</span> (<span style='color:darkgreen'>deleteMethod</span> <span style='color:fuchsia'>></span> <span style='color:turquoise'>3</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+            <span style='color:blueviolet'>if</span> (<span style='color:darkgreen'>deleteMethod</span> <span style='color:fuchsia'>&lt</span> <span style='color:turquoise'>0</span><span style='color:deepskyblue'>)</span> <span style='color:blueviolet'>or</span> (<span style='color:darkgreen'>deleteMethod</span> <span style='color:fuchsia'>&gt</span> <span style='color:turquoise'>3</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
                 <span style='color:darkgreen'>print</span>(
                     <span style='color:crimson'>"inputed delete method is %d, valid value is 0~3, set to default 0"</span> <span style='color:fuchsia'>%</span>
                     <span style='color:darkgreen'>deleteMethod</span><span style='color:deepskyblue'>)</span>
@@ -706,7 +706,7 @@
             <span style='color:darkgreen'>sys</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>exit</span>(<span style='color:turquoise'>1</span><span style='color:deepskyblue'>)</span>
 
     <span style='color:darkblue'># drop data only if delete method be set</span>
-    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>deleteMethod</span> <span style='color:fuchsia'>></span> <span style='color:turquoise'>0</span><span style='color:deepskyblue'>:</span>
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>deleteMethod</span> <span style='color:fuchsia'>&gt</span> <span style='color:turquoise'>0</span><span style='color:deepskyblue'>:</span>
         <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>deleteMethod</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:turquoise'>1</span><span style='color:deepskyblue'>:</span>
             <span style='color:darkgreen'>drop_tables</span>(<span style='color:deepskyblue'>)</span>
             <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"Drop tables done."</span><span style='color:deepskyblue'>)</span>
@@ -729,7 +729,7 @@
     <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>measure</span><span style='color:deepskyblue'>:</span>
         <span style='color:darkgreen'>start_time_begin</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>time</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>time</span>(<span style='color:deepskyblue'>)</span>
 
-    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>numOfStb</span> <span style='color:fuchsia'>></span> <span style='color:turquoise'>0</span><span style='color:deepskyblue'>:</span>
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>numOfStb</span> <span style='color:fuchsia'>&gt</span> <span style='color:turquoise'>0</span><span style='color:deepskyblue'>:</span>
         <span style='color:darkgreen'>create_stb</span>(<span style='color:deepskyblue'>)</span>
         <span style='color:blueviolet'>if</span> (<span style='color:darkgreen'>autosubtable</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:blueviolet'>False</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
             <span style='color:darkgreen'>create_tb_using_stb</span>(<span style='color:deepskyblue'>)</span>
@@ -758,7 +758,7 @@
     <span style='color:darkgreen'>end</span> <span style='color:deepskyblue'>=</span> <span style='color:turquoise'>0</span>
 
     <span style='color:darkgreen'>quotient</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>numOfTb</span> <span style='color:fuchsia'>//</span> <span style='color:darkgreen'>processes</span>
-    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>quotient</span> <span style='color:fuchsia'><</span> <span style='color:turquoise'>1</span><span style='color:deepskyblue'>:</span>
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>quotient</span> <span style='color:fuchsia'>&lt</span> <span style='color:turquoise'>1</span><span style='color:deepskyblue'>:</span>
         <span style='color:darkgreen'>processes</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>numOfTb</span>
         <span style='color:darkgreen'>quotient</span> <span style='color:deepskyblue'>=</span> <span style='color:turquoise'>1</span>
 
@@ -772,7 +772,7 @@
     <span style='color:blueviolet'>for</span> <span style='color:darkgreen'>i</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>range</span>(<span style='color:darkgreen'>processes</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
         <span style='color:darkgreen'>begin</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>end</span>
 
-        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>i</span> <span style='color:fuchsia'><</span> <span style='color:darkgreen'>remainder</span><span style='color:deepskyblue'>:</span>
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>i</span> <span style='color:fuchsia'>&lt</span> <span style='color:darkgreen'>remainder</span><span style='color:deepskyblue'>:</span>
             <span style='color:darkgreen'>end</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>begin</span> <span style='color:fuchsia'>+</span> <span style='color:darkgreen'>quotient</span> <span style='color:fuchsia'>+</span> <span style='color:turquoise'>1</span>
         <span style='color:blueviolet'>else</span><span style='color:deepskyblue'>:</span>
             <span style='color:darkgreen'>end</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>begin</span> <span style='color:fuchsia'>+</span> <span style='color:darkgreen'>quotient</span>
