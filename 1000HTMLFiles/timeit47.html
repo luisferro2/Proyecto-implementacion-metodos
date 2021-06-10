@@ -1,0 +1,358 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="categorical-styles.css">
+        <title>Documento de python resaltado</title>
+    </head>
+    <body>
+        <pre><span style='color:darkblue'>#! /usr/bin/env python3</span>
+
+<span style='color:crimson'>"""Tool for measuring execution time of small code snippets.
+This module avoids a number of common traps for measuring execution
+times.  See also Tim Peters' introduction to the Algorithms chapter in
+the Python Cookbook, published by O'Reilly.
+Library usage: see the Timer class.
+Command line usage:
+    python timeit.py [-n N] [-r N] [-s S] [-p] [-h] [--] [statement]
+Options:
+  -n/--number N: how many times to execute 'statement' (default: see below)
+  -r/--repeat N: how many times to repeat the timer (default 5)
+  -s/--setup S: statement to be executed once initially (default 'pass').
+                Execution time of this setup statement is NOT timed.
+  -p/--process: use time.process_time() (default is time.perf_counter())
+  -v/--verbose: print raw timing results; repeat for more digits precision
+  -u/--unit: set the output time unit (nsec, usec, msec, or sec)
+  -h/--help: print this usage message and exit
+  --: separate options from statement, use when statement starts with -
+  statement: statement to be timed (default 'pass')
+A multi-line statement may be given by specifying each line as a
+separate argument; indented lines are possible by enclosing an
+argument in quotes and using leading spaces.  Multiple -s options are
+treated similarly.
+If -n is not given, a suitable number of loops is calculated by trying
+increasing numbers from the sequence 1, 2, 5, 10, 20, 50, ... until the
+total time is at least 0.2 seconds.
+Note: there is a certain baseline overhead associated with executing a
+pass statement.  It differs between versions.  The code here doesn't try
+to hide it, but you should be aware of it.  The baseline overhead can be
+measured by invoking the program without arguments.
+Classes:
+    Timer
+Functions:
+    timeit(string, string) -> float
+    repeat(string, string) -> list
+    default_timer() -> float
+"""</span>
+
+<span style='color:blueviolet'>import</span> <span style='color:darkgreen'>gc</span>
+<span style='color:blueviolet'>import</span> <span style='color:darkgreen'>sys</span>
+<span style='color:blueviolet'>import</span> <span style='color:darkgreen'>time</span>
+<span style='color:blueviolet'>import</span> <span style='color:darkgreen'>itertools</span>
+
+<span style='color:darkgreen'>__all__</span> <span style='color:deepskyblue'>=</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>"Timer"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"timeit"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"repeat"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"default_timer"</span><span style='color:deepskyblue'>]</span>
+
+<span style='color:darkgreen'>dummy_src_name</span> <span style='color:deepskyblue'>=</span> <span style='color:crimson'>"<timeit-src>"</span>
+<span style='color:darkgreen'>default_number</span> <span style='color:deepskyblue'>=</span> <span style='color:turquoise'>1000000</span>
+<span style='color:darkgreen'>default_repeat</span> <span style='color:deepskyblue'>=</span> <span style='color:turquoise'>5</span>
+<span style='color:darkgreen'>default_timer</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>time</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>perf_counter</span>
+
+<span style='color:darkgreen'>_globals</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>globals</span>
+
+<span style='color:darkblue'># Don't change the indentation of the template; the reindent() calls</span>
+<span style='color:darkblue'># in Timer.__init__() depend on setup being indented 4 spaces and stmt</span>
+<span style='color:darkblue'># being indented 8 spaces.</span>
+<span style='color:darkgreen'>template</span> <span style='color:deepskyblue'>=</span> <span style='color:crimson'>"""
+def inner(_it, _timer{init}):
+    {setup}
+    _t0 = _timer()
+    for _i in _it:
+        {stmt}
+        pass
+    _t1 = _timer()
+    return _t1 - _t0
+"""</span>
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>reindent</span>(<span style='color:darkgreen'>src</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>indent</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:crimson'>"""Helper to reindent a multi-line statement."""</span>
+    <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>src</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>replace</span>(<span style='color:crimson'>"\n"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"\n"</span> <span style='color:fuchsia'>+</span> <span style='color:crimson'>" "</span><span style='color:fuchsia'>*</span><span style='color:darkgreen'>indent</span><span style='color:deepskyblue'>)</span>
+
+<span style='color:blueviolet'>class</span> <span style='color:darkgreen'>Timer</span><span style='color:deepskyblue'>:</span>
+    <span style='color:crimson'>"""Class for timing execution speed of small code snippets.
+    The constructor takes a statement to be timed, an additional
+    statement used for setup, and a timer function.  Both statements
+    default to 'pass'; the timer function is platform-dependent (see
+    module doc string).  If 'globals' is specified, the code will be
+    executed within that namespace (as opposed to inside timeit's
+    namespace).
+    To measure the execution time of the first statement, use the
+    timeit() method.  The repeat() method is a convenience to call
+    timeit() multiple times and return a list of results.
+    The statements may contain newlines, as long as they don't contain
+    multi-line string literals.
+    """</span>
+
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>__init__</span>(<span style='color:darkgreen'>self</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>stmt</span><span style='color:deepskyblue'>=</span><span style='color:crimson'>"pass"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>setup</span><span style='color:deepskyblue'>=</span><span style='color:crimson'>"pass"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>timer</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>default_timer</span><span style='color:deepskyblue'>,</span>
+                 <span style='color:darkgreen'>globals</span><span style='color:deepskyblue'>=</span><span style='color:blueviolet'>None</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:crimson'>"""Constructor.  See class doc string."""</span>
+        <span style='color:darkgreen'>self</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>timer</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>timer</span>
+        <span style='color:darkgreen'>local_ns</span> <span style='color:deepskyblue'>=</span> <span style='color:deepskyblue'>{</span><span style='color:deepskyblue'>}</span>
+        <span style='color:darkgreen'>global_ns</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>_globals</span>(<span style='color:deepskyblue'>)</span> <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>globals</span> <span style='color:blueviolet'>is</span> <span style='color:blueviolet'>None</span> <span style='color:blueviolet'>else</span> <span style='color:darkgreen'>globals</span>
+        <span style='color:darkgreen'>init</span> <span style='color:deepskyblue'>=</span> <span style='color:crimson'>''</span>
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>isinstance</span>(<span style='color:darkgreen'>setup</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>str</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkblue'># Check that the code can be compiled outside a function</span>
+            <span style='color:darkgreen'>compile</span>(<span style='color:darkgreen'>setup</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>dummy_src_name</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"exec"</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>stmtprefix</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>setup</span> <span style='color:fuchsia'>+</span> <span style='color:crimson'>'\n'</span>
+            <span style='color:darkgreen'>setup</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>reindent</span>(<span style='color:darkgreen'>setup</span><span style='color:deepskyblue'>,</span> <span style='color:turquoise'>4</span><span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>elif</span> <span style='color:darkgreen'>callable</span>(<span style='color:darkgreen'>setup</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>local_ns</span><span style='color:deepskyblue'>[</span><span style='color:crimson'>'_setup'</span><span style='color:deepskyblue'>]</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>setup</span>
+            <span style='color:darkgreen'>init</span> <span style='color:deepskyblue'>+=</span> <span style='color:crimson'>', _setup=_setup'</span>
+            <span style='color:darkgreen'>stmtprefix</span> <span style='color:deepskyblue'>=</span> <span style='color:crimson'>''</span>
+            <span style='color:darkgreen'>setup</span> <span style='color:deepskyblue'>=</span> <span style='color:crimson'>'_setup()'</span>
+        <span style='color:blueviolet'>else</span><span style='color:deepskyblue'>:</span>
+            <span style='color:blueviolet'>raise</span> <span style='color:darkgreen'>ValueError</span>(<span style='color:crimson'>"setup is neither a string nor callable"</span><span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>isinstance</span>(<span style='color:darkgreen'>stmt</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>str</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkblue'># Check that the code can be compiled outside a function</span>
+            <span style='color:darkgreen'>compile</span>(<span style='color:darkgreen'>stmtprefix</span> <span style='color:fuchsia'>+</span> <span style='color:darkgreen'>stmt</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>dummy_src_name</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"exec"</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>stmt</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>reindent</span>(<span style='color:darkgreen'>stmt</span><span style='color:deepskyblue'>,</span> <span style='color:turquoise'>8</span><span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>elif</span> <span style='color:darkgreen'>callable</span>(<span style='color:darkgreen'>stmt</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>local_ns</span><span style='color:deepskyblue'>[</span><span style='color:crimson'>'_stmt'</span><span style='color:deepskyblue'>]</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>stmt</span>
+            <span style='color:darkgreen'>init</span> <span style='color:deepskyblue'>+=</span> <span style='color:crimson'>', _stmt=_stmt'</span>
+            <span style='color:darkgreen'>stmt</span> <span style='color:deepskyblue'>=</span> <span style='color:crimson'>'_stmt()'</span>
+        <span style='color:blueviolet'>else</span><span style='color:deepskyblue'>:</span>
+            <span style='color:blueviolet'>raise</span> <span style='color:darkgreen'>ValueError</span>(<span style='color:crimson'>"stmt is neither a string nor callable"</span><span style='color:deepskyblue'>)</span>
+        <span style='color:darkgreen'>src</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>template</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>format</span>(<span style='color:darkgreen'>stmt</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>stmt</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>setup</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>setup</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>init</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>init</span><span style='color:deepskyblue'>)</span>
+        <span style='color:darkgreen'>self</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>src</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>src</span>  <span style='color:darkblue'># Save for traceback display</span>
+        <span style='color:darkgreen'>code</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>compile</span>(<span style='color:darkgreen'>src</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>dummy_src_name</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"exec"</span><span style='color:deepskyblue'>)</span>
+        <span style='color:darkgreen'>exec</span>(<span style='color:darkgreen'>code</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>global_ns</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>local_ns</span><span style='color:deepskyblue'>)</span>
+        <span style='color:darkgreen'>self</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>inner</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>local_ns</span><span style='color:deepskyblue'>[</span><span style='color:crimson'>"inner"</span><span style='color:deepskyblue'>]</span>
+
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>print_exc</span>(<span style='color:darkgreen'>self</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>file</span><span style='color:deepskyblue'>=</span><span style='color:blueviolet'>None</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:crimson'>"""Helper to print a traceback from the timed code.
+        Typical use:
+            t = Timer(...)       # outside the try/except
+            try:
+                t.timeit(...)    # or t.repeat(...)
+            except:
+                t.print_exc()
+        The advantage over the standard traceback is that source lines
+        in the compiled template will be displayed.
+        The optional file argument directs where the traceback is
+        sent; it defaults to sys.stderr.
+        """</span>
+        <span style='color:blueviolet'>import</span> <span style='color:darkgreen'>linecache</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>traceback</span>
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>self</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>src</span> <span style='color:blueviolet'>is</span> <span style='color:blueviolet'>not</span> <span style='color:blueviolet'>None</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>linecache</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>cache</span><span style='color:deepskyblue'>[</span><span style='color:darkgreen'>dummy_src_name</span><span style='color:deepskyblue'>]</span> <span style='color:deepskyblue'>=</span> (<span style='color:darkgreen'>len</span>(<span style='color:darkgreen'>self</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>src</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span>
+                                               <span style='color:blueviolet'>None</span><span style='color:deepskyblue'>,</span>
+                                               <span style='color:darkgreen'>self</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>src</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>split</span>(<span style='color:crimson'>"\n"</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span>
+                                               <span style='color:darkgreen'>dummy_src_name</span><span style='color:deepskyblue'>)</span>
+        <span style='color:darkblue'># else the source is already stored somewhere else</span>
+
+        <span style='color:darkgreen'>traceback</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>print_exc</span>(<span style='color:darkgreen'>file</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>file</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>timeit</span>(<span style='color:darkgreen'>self</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>number</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>default_number</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:crimson'>"""Time 'number' executions of the main statement.
+        To be precise, this executes the setup statement once, and
+        then returns the time it takes to execute the main statement
+        a number of times, as a float measured in seconds.  The
+        argument is the number of times through the loop, defaulting
+        to one million.  The main statement, the setup statement and
+        the timer function to be used are passed to the constructor.
+        """</span>
+        <span style='color:darkgreen'>it</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>itertools</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>repeat</span>(<span style='color:blueviolet'>None</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>number</span><span style='color:deepskyblue'>)</span>
+        <span style='color:darkgreen'>gcold</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>gc</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>isenabled</span>(<span style='color:deepskyblue'>)</span>
+        <span style='color:darkgreen'>gc</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>disable</span>(<span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>try</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>timing</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>self</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>inner</span>(<span style='color:darkgreen'>it</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>self</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>timer</span><span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>finally</span><span style='color:deepskyblue'>:</span>
+            <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>gcold</span><span style='color:deepskyblue'>:</span>
+                <span style='color:darkgreen'>gc</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>enable</span>(<span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>timing</span>
+
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>repeat</span>(<span style='color:darkgreen'>self</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>repeat</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>default_repeat</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>number</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>default_number</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:crimson'>"""Call timeit() a few times.
+        This is a convenience function that calls the timeit()
+        repeatedly, returning a list of results.  The first argument
+        specifies how many times to call timeit(), defaulting to 5;
+        the second argument specifies the timer argument, defaulting
+        to one million.
+        Note: it's tempting to calculate mean and standard deviation
+        from the result vector and report these.  However, this is not
+        very useful.  In a typical case, the lowest value gives a
+        lower bound for how fast your machine can run the given code
+        snippet; higher values in the result vector are typically not
+        caused by variability in Python's speed, but by other
+        processes interfering with your timing accuracy.  So the min()
+        of the result is probably the only number you should be
+        interested in.  After that, you should look at the entire
+        vector and apply common sense rather than statistics.
+        """</span>
+        <span style='color:darkgreen'>r</span> <span style='color:deepskyblue'>=</span> <span style='color:deepskyblue'>[</span><span style='color:deepskyblue'>]</span>
+        <span style='color:blueviolet'>for</span> <span style='color:darkgreen'>i</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>range</span>(<span style='color:darkgreen'>repeat</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>t</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>self</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>timeit</span>(<span style='color:darkgreen'>number</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>r</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>append</span>(<span style='color:darkgreen'>t</span><span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>r</span>
+
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>autorange</span>(<span style='color:darkgreen'>self</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>callback</span><span style='color:deepskyblue'>=</span><span style='color:blueviolet'>None</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:crimson'>"""Return the number of loops and time taken so that total time >= 0.2.
+        Calls the timeit method with increasing numbers from the sequence
+        1, 2, 5, 10, 20, 50, ... until the time taken is at least 0.2
+        second.  Returns (number, time_taken).
+        If *callback* is given and is not None, it will be called after
+        each trial with two arguments: ``callback(number, time_taken)``.
+        """</span>
+        <span style='color:darkgreen'>i</span> <span style='color:deepskyblue'>=</span> <span style='color:turquoise'>1</span>
+        <span style='color:blueviolet'>while</span> <span style='color:blueviolet'>True</span><span style='color:deepskyblue'>:</span>
+            <span style='color:blueviolet'>for</span> <span style='color:darkgreen'>j</span> <span style='color:blueviolet'>in</span> <span style='color:turquoise'>1</span><span style='color:deepskyblue'>,</span> <span style='color:turquoise'>2</span><span style='color:deepskyblue'>,</span> <span style='color:turquoise'>5</span><span style='color:deepskyblue'>:</span>
+                <span style='color:darkgreen'>number</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>i</span> <span style='color:fuchsia'>*</span> <span style='color:darkgreen'>j</span>
+                <span style='color:darkgreen'>time_taken</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>self</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>timeit</span>(<span style='color:darkgreen'>number</span><span style='color:deepskyblue'>)</span>
+                <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>callback</span><span style='color:deepskyblue'>:</span>
+                    <span style='color:darkgreen'>callback</span>(<span style='color:darkgreen'>number</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>time_taken</span><span style='color:deepskyblue'>)</span>
+                <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>time_taken</span> <span style='color:deepskyblue'>>=</span> <span style='color:saddlebrown'>0.2</span><span style='color:deepskyblue'>:</span>
+                    <span style='color:blueviolet'>return</span> (<span style='color:darkgreen'>number</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>time_taken</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>i</span> <span style='color:deepskyblue'>*=</span> <span style='color:turquoise'>10</span>
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>timeit</span>(<span style='color:darkgreen'>stmt</span><span style='color:deepskyblue'>=</span><span style='color:crimson'>"pass"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>setup</span><span style='color:deepskyblue'>=</span><span style='color:crimson'>"pass"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>timer</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>default_timer</span><span style='color:deepskyblue'>,</span>
+           <span style='color:darkgreen'>number</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>default_number</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>globals</span><span style='color:deepskyblue'>=</span><span style='color:blueviolet'>None</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:crimson'>"""Convenience function to create Timer object and call timeit method."""</span>
+    <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>Timer</span>(<span style='color:darkgreen'>stmt</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>setup</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>timer</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>globals</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>timeit</span>(<span style='color:darkgreen'>number</span><span style='color:deepskyblue'>)</span>
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>repeat</span>(<span style='color:darkgreen'>stmt</span><span style='color:deepskyblue'>=</span><span style='color:crimson'>"pass"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>setup</span><span style='color:deepskyblue'>=</span><span style='color:crimson'>"pass"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>timer</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>default_timer</span><span style='color:deepskyblue'>,</span>
+           <span style='color:darkgreen'>repeat</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>default_repeat</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>number</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>default_number</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>globals</span><span style='color:deepskyblue'>=</span><span style='color:blueviolet'>None</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:crimson'>"""Convenience function to create Timer object and call repeat method."""</span>
+    <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>Timer</span>(<span style='color:darkgreen'>stmt</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>setup</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>timer</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>globals</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>repeat</span>(<span style='color:darkgreen'>repeat</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>number</span><span style='color:deepskyblue'>)</span>
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>main</span>(<span style='color:darkgreen'>args</span><span style='color:deepskyblue'>=</span><span style='color:blueviolet'>None</span><span style='color:deepskyblue'>,</span> <span style='color:fuchsia'>*</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>_wrap_timer</span><span style='color:deepskyblue'>=</span><span style='color:blueviolet'>None</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:crimson'>"""Main program, used when run as a script.
+    The optional 'args' argument specifies the command line to be parsed,
+    defaulting to sys.argv[1:].
+    The return value is an exit code to be passed to sys.exit(); it
+    may be None to indicate success.
+    When an exception happens during timing, a traceback is printed to
+    stderr and the return value is 1.  Exceptions at other times
+    (including the template compilation) are not caught.
+    '_wrap_timer' is an internal interface used for unit testing.  If it
+    is not None, it must be a callable that accepts a timer function
+    and returns another timer function (used for unit testing).
+    """</span>
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>args</span> <span style='color:blueviolet'>is</span> <span style='color:blueviolet'>None</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>args</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>sys</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>argv</span><span style='color:deepskyblue'>[</span><span style='color:turquoise'>1</span><span style='color:deepskyblue'>:</span><span style='color:deepskyblue'>]</span>
+    <span style='color:blueviolet'>import</span> <span style='color:darkgreen'>getopt</span>
+    <span style='color:blueviolet'>try</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>opts</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>args</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>getopt</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>getopt</span>(<span style='color:darkgreen'>args</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"n:u:s:r:tcpvh"</span><span style='color:deepskyblue'>,</span>
+                                   <span style='color:deepskyblue'>[</span><span style='color:crimson'>"number="</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"setup="</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"repeat="</span><span style='color:deepskyblue'>,</span>
+                                    <span style='color:crimson'>"time"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"clock"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"process"</span><span style='color:deepskyblue'>,</span>
+                                    <span style='color:crimson'>"verbose"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"unit="</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"help"</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>except</span> <span style='color:darkgreen'>getopt</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>error</span> <span style='color:blueviolet'>as</span> <span style='color:darkgreen'>err</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>print</span>(<span style='color:darkgreen'>err</span><span style='color:deepskyblue'>)</span>
+        <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"use -h/--help for command line help"</span><span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>return</span> <span style='color:turquoise'>2</span>
+
+    <span style='color:darkgreen'>timer</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>default_timer</span>
+    <span style='color:darkgreen'>stmt</span> <span style='color:deepskyblue'>=</span> <span style='color:crimson'>"\n"</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>join</span>(<span style='color:darkgreen'>args</span><span style='color:deepskyblue'>)</span> <span style='color:blueviolet'>or</span> <span style='color:crimson'>"pass"</span>
+    <span style='color:darkgreen'>number</span> <span style='color:deepskyblue'>=</span> <span style='color:turquoise'>0</span> <span style='color:darkblue'># auto-determine</span>
+    <span style='color:darkgreen'>setup</span> <span style='color:deepskyblue'>=</span> <span style='color:deepskyblue'>[</span><span style='color:deepskyblue'>]</span>
+    <span style='color:darkgreen'>repeat</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>default_repeat</span>
+    <span style='color:darkgreen'>verbose</span> <span style='color:deepskyblue'>=</span> <span style='color:turquoise'>0</span>
+    <span style='color:darkgreen'>time_unit</span> <span style='color:deepskyblue'>=</span> <span style='color:blueviolet'>None</span>
+    <span style='color:darkgreen'>units</span> <span style='color:deepskyblue'>=</span> <span style='color:deepskyblue'>{</span><span style='color:crimson'>"nsec"</span><span style='color:deepskyblue'>:</span> <span style='color:saddlebrown'>1e-9</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"usec"</span><span style='color:deepskyblue'>:</span> <span style='color:saddlebrown'>1e-6</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"msec"</span><span style='color:deepskyblue'>:</span> <span style='color:saddlebrown'>1e-3</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"sec"</span><span style='color:deepskyblue'>:</span> <span style='color:saddlebrown'>1.0</span><span style='color:deepskyblue'>}</span>
+    <span style='color:darkgreen'>precision</span> <span style='color:deepskyblue'>=</span> <span style='color:turquoise'>3</span>
+    <span style='color:blueviolet'>for</span> <span style='color:darkgreen'>o</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>a</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>opts</span><span style='color:deepskyblue'>:</span>
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>o</span> <span style='color:blueviolet'>in</span> (<span style='color:crimson'>"-n"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"--number"</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>number</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>int</span>(<span style='color:darkgreen'>a</span><span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>o</span> <span style='color:blueviolet'>in</span> (<span style='color:crimson'>"-s"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"--setup"</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>setup</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>append</span>(<span style='color:darkgreen'>a</span><span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>o</span> <span style='color:blueviolet'>in</span> (<span style='color:crimson'>"-u"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"--unit"</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+            <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>a</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>units</span><span style='color:deepskyblue'>:</span>
+                <span style='color:darkgreen'>time_unit</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>a</span>
+            <span style='color:blueviolet'>else</span><span style='color:deepskyblue'>:</span>
+                <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"Unrecognized unit. Please select nsec, usec, msec, or sec."</span><span style='color:deepskyblue'>,</span>
+                    <span style='color:darkgreen'>file</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>sys</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>stderr</span><span style='color:deepskyblue'>)</span>
+                <span style='color:blueviolet'>return</span> <span style='color:turquoise'>2</span>
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>o</span> <span style='color:blueviolet'>in</span> (<span style='color:crimson'>"-r"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"--repeat"</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>repeat</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>int</span>(<span style='color:darkgreen'>a</span><span style='color:deepskyblue'>)</span>
+            <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>repeat</span> <span style='color:deepskyblue'><=</span> <span style='color:turquoise'>0</span><span style='color:deepskyblue'>:</span>
+                <span style='color:darkgreen'>repeat</span> <span style='color:deepskyblue'>=</span> <span style='color:turquoise'>1</span>
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>o</span> <span style='color:blueviolet'>in</span> (<span style='color:crimson'>"-p"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"--process"</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>timer</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>time</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>process_time</span>
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>o</span> <span style='color:blueviolet'>in</span> (<span style='color:crimson'>"-v"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"--verbose"</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+            <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>verbose</span><span style='color:deepskyblue'>:</span>
+                <span style='color:darkgreen'>precision</span> <span style='color:deepskyblue'>+=</span> <span style='color:turquoise'>1</span>
+            <span style='color:darkgreen'>verbose</span> <span style='color:deepskyblue'>+=</span> <span style='color:turquoise'>1</span>
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>o</span> <span style='color:blueviolet'>in</span> (<span style='color:crimson'>"-h"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"--help"</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>print</span>(<span style='color:darkgreen'>__doc__</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>end</span><span style='color:deepskyblue'>=</span><span style='color:crimson'>' '</span><span style='color:deepskyblue'>)</span>
+            <span style='color:blueviolet'>return</span> <span style='color:turquoise'>0</span>
+    <span style='color:darkgreen'>setup</span> <span style='color:deepskyblue'>=</span> <span style='color:crimson'>"\n"</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>join</span>(<span style='color:darkgreen'>setup</span><span style='color:deepskyblue'>)</span> <span style='color:blueviolet'>or</span> <span style='color:crimson'>"pass"</span>
+
+    <span style='color:darkblue'># Include the current directory, so that local imports work (sys.path</span>
+    <span style='color:darkblue'># contains the directory of this script, rather than the current</span>
+    <span style='color:darkblue'># directory)</span>
+    <span style='color:blueviolet'>import</span> <span style='color:darkgreen'>os</span>
+    <span style='color:darkgreen'>sys</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>path</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>insert</span>(<span style='color:turquoise'>0</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>os</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>curdir</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>_wrap_timer</span> <span style='color:blueviolet'>is</span> <span style='color:blueviolet'>not</span> <span style='color:blueviolet'>None</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>timer</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>_wrap_timer</span>(<span style='color:darkgreen'>timer</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkgreen'>t</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>Timer</span>(<span style='color:darkgreen'>stmt</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>setup</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>timer</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>number</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:turquoise'>0</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkblue'># determine number so that 0.2 <= total time < 2.0</span>
+        <span style='color:darkgreen'>callback</span> <span style='color:deepskyblue'>=</span> <span style='color:blueviolet'>None</span>
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>verbose</span><span style='color:deepskyblue'>:</span>
+            <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>callback</span>(<span style='color:darkgreen'>number</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>time_taken</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+                <span style='color:darkgreen'>msg</span> <span style='color:deepskyblue'>=</span> <span style='color:crimson'>"{num} loop{s} -> {secs:.{prec}g} secs"</span>
+                <span style='color:darkgreen'>plural</span> <span style='color:deepskyblue'>=</span> (<span style='color:darkgreen'>number</span> <span style='color:fuchsia'>!=</span> <span style='color:turquoise'>1</span><span style='color:deepskyblue'>)</span>
+                <span style='color:darkgreen'>print</span>(<span style='color:darkgreen'>msg</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>format</span>(<span style='color:darkgreen'>num</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>number</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>s</span><span style='color:deepskyblue'>=</span><span style='color:crimson'>'s'</span> <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>plural</span> <span style='color:blueviolet'>else</span> <span style='color:crimson'>''</span><span style='color:deepskyblue'>,</span>
+                                  <span style='color:darkgreen'>secs</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>time_taken</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>prec</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>precision</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>try</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>number</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>_</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>t</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>autorange</span>(<span style='color:darkgreen'>callback</span><span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>except</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>t</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>print_exc</span>(<span style='color:deepskyblue'>)</span>
+            <span style='color:blueviolet'>return</span> <span style='color:turquoise'>1</span>
+
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>verbose</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>print</span>(<span style='color:deepskyblue'>)</span>
+
+    <span style='color:blueviolet'>try</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>raw_timings</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>t</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>repeat</span>(<span style='color:darkgreen'>repeat</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>number</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>except</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>t</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>print_exc</span>(<span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>return</span> <span style='color:turquoise'>1</span>
+
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>format_time</span>(<span style='color:darkgreen'>dt</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>unit</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>time_unit</span>
+
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>unit</span> <span style='color:blueviolet'>is</span> <span style='color:blueviolet'>not</span> <span style='color:blueviolet'>None</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>scale</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>units</span><span style='color:deepskyblue'>[</span><span style='color:darkgreen'>unit</span><span style='color:deepskyblue'>]</span>
+        <span style='color:blueviolet'>else</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>scales</span> <span style='color:deepskyblue'>=</span> <span style='color:deepskyblue'>[</span>(<span style='color:darkgreen'>scale</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>unit</span><span style='color:deepskyblue'>)</span> <span style='color:blueviolet'>for</span> <span style='color:darkgreen'>unit</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>scale</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>units</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>items</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>]</span>
+            <span style='color:darkgreen'>scales</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>sort</span>(<span style='color:darkgreen'>reverse</span><span style='color:deepskyblue'>=</span><span style='color:blueviolet'>True</span><span style='color:deepskyblue'>)</span>
+            <span style='color:blueviolet'>for</span> <span style='color:darkgreen'>scale</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>unit</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>scales</span><span style='color:deepskyblue'>:</span>
+                <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>dt</span> <span style='color:deepskyblue'>>=</span> <span style='color:darkgreen'>scale</span><span style='color:deepskyblue'>:</span>
+                    <span style='color:blueviolet'>break</span>
+
+        <span style='color:blueviolet'>return</span> <span style='color:crimson'>"%.*g %s"</span> <span style='color:fuchsia'>%</span> (<span style='color:darkgreen'>precision</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>dt</span> <span style='color:fuchsia'>/</span> <span style='color:darkgreen'>scale</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>unit</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>verbose</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"raw times: %s"</span> <span style='color:fuchsia'>%</span> <span style='color:crimson'>", "</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>join</span>(<span style='color:darkgreen'>map</span>(<span style='color:darkgreen'>format_time</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>raw_timings</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+        <span style='color:darkgreen'>print</span>(<span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>timings</span> <span style='color:deepskyblue'>=</span> <span style='color:deepskyblue'>[</span><span style='color:darkgreen'>dt</span> <span style='color:fuchsia'>/</span> <span style='color:darkgreen'>number</span> <span style='color:blueviolet'>for</span> <span style='color:darkgreen'>dt</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>raw_timings</span><span style='color:deepskyblue'>]</span>
+
+    <span style='color:darkgreen'>best</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>min</span>(<span style='color:darkgreen'>timings</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"%d loop%s, best of %d: %s per loop"</span>
+          <span style='color:fuchsia'>%</span> (<span style='color:darkgreen'>number</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'s'</span> <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>number</span> <span style='color:fuchsia'>!=</span> <span style='color:turquoise'>1</span> <span style='color:blueviolet'>else</span> <span style='color:crimson'>''</span><span style='color:deepskyblue'>,</span>
+             <span style='color:darkgreen'>repeat</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>format_time</span>(<span style='color:darkgreen'>best</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkgreen'>best</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>min</span>(<span style='color:darkgreen'>timings</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>worst</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>max</span>(<span style='color:darkgreen'>timings</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>worst</span> <span style='color:deepskyblue'>>=</span> <span style='color:darkgreen'>best</span> <span style='color:fuchsia'>*</span> <span style='color:turquoise'>4</span><span style='color:deepskyblue'>:</span>
+        <span style='color:blueviolet'>import</span> <span style='color:darkgreen'>warnings</span>
+        <span style='color:darkgreen'>warnings</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>warn_explicit</span>(<span style='color:crimson'>"The test results are likely unreliable. "</span>
+                               <span style='color:crimson'>"The worst time (%s) was more than four times "</span>
+                               <span style='color:crimson'>"slower than the best time (%s)."</span>
+                               <span style='color:fuchsia'>%</span> (<span style='color:darkgreen'>format_time</span>(<span style='color:darkgreen'>worst</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>format_time</span>(<span style='color:darkgreen'>best</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span>
+                               <span style='color:darkgreen'>UserWarning</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>''</span><span style='color:deepskyblue'>,</span> <span style='color:turquoise'>0</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>return</span> <span style='color:blueviolet'>None</span>
+
+<span style='color:blueviolet'>if</span> <span style='color:darkgreen'>__name__</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:crimson'>"__main__"</span><span style='color:deepskyblue'>:</span>
+    <span style='color:darkgreen'>sys</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>exit</span>(<span style='color:darkgreen'>main</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+
+        </pre>
+    </body>
+</html>

@@ -1,0 +1,669 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="categorical-styles.css">
+        <title>Documento de python resaltado</title>
+    </head>
+    <body>
+        <pre><span style='color:darkblue'># This file was part of Flask-CLI and was modified under the terms of</span>
+<span style='color:darkblue'># its Revised BSD License. Copyright © 2015 CERN.</span>
+<span style='color:blueviolet'>import</span> <span style='color:darkgreen'>os</span>
+<span style='color:blueviolet'>import</span> <span style='color:darkgreen'>ssl</span>
+<span style='color:blueviolet'>import</span> <span style='color:darkgreen'>sys</span>
+<span style='color:blueviolet'>import</span> <span style='color:darkgreen'>types</span>
+<span style='color:blueviolet'>from</span> <span style='color:darkgreen'>functools</span> <span style='color:blueviolet'>import</span> <span style='color:darkgreen'>partial</span>
+<span style='color:blueviolet'>from</span> <span style='color:darkgreen'>pathlib</span> <span style='color:blueviolet'>import</span> <span style='color:darkgreen'>Path</span>
+<span style='color:blueviolet'>from</span> <span style='color:darkgreen'>unittest</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>mock</span> <span style='color:blueviolet'>import</span> <span style='color:darkgreen'>patch</span>
+
+<span style='color:blueviolet'>import</span> <span style='color:darkgreen'>click</span>
+<span style='color:blueviolet'>import</span> <span style='color:darkgreen'>pytest</span>
+<span style='color:blueviolet'>from</span> <span style='color:darkgreen'>_pytest</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>monkeypatch</span> <span style='color:blueviolet'>import</span> <span style='color:blueviolet'>not</span>set
+<span style='color:blueviolet'>from</span> <span style='color:darkgreen'>click</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>testing</span> <span style='color:blueviolet'>import</span> <span style='color:darkgreen'>CliRunner</span>
+
+<span style='color:blueviolet'>from</span> <span style='color:darkgreen'>flask</span> <span style='color:blueviolet'>import</span> <span style='color:darkgreen'>Blueprint</span>
+<span style='color:blueviolet'>from</span> <span style='color:darkgreen'>flask</span> <span style='color:blueviolet'>import</span> <span style='color:darkgreen'>current_app</span>
+<span style='color:blueviolet'>from</span> <span style='color:darkgreen'>flask</span> <span style='color:blueviolet'>import</span> <span style='color:darkgreen'>Flask</span>
+<span style='color:blueviolet'>from</span> <span style='color:darkgreen'>flask</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>cli</span> <span style='color:blueviolet'>import</span> <span style='color:darkgreen'>AppGroup</span>
+<span style='color:blueviolet'>from</span> <span style='color:darkgreen'>flask</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>cli</span> <span style='color:blueviolet'>import</span> <span style='color:darkgreen'>dotenv</span>
+<span style='color:blueviolet'>from</span> <span style='color:darkgreen'>flask</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>cli</span> <span style='color:blueviolet'>import</span> <span style='color:darkgreen'>find_best_app</span>
+<span style='color:blueviolet'>from</span> <span style='color:darkgreen'>flask</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>cli</span> <span style='color:blueviolet'>import</span> <span style='color:darkgreen'>FlaskGroup</span>
+<span style='color:blueviolet'>from</span> <span style='color:darkgreen'>flask</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>cli</span> <span style='color:blueviolet'>import</span> <span style='color:darkgreen'>get_version</span>
+<span style='color:blueviolet'>from</span> <span style='color:darkgreen'>flask</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>cli</span> <span style='color:blueviolet'>import</span> <span style='color:darkgreen'>load_dotenv</span>
+<span style='color:blueviolet'>from</span> <span style='color:darkgreen'>flask</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>cli</span> <span style='color:blueviolet'>import</span> <span style='color:darkgreen'>locate_app</span>
+<span style='color:blueviolet'>from</span> <span style='color:darkgreen'>flask</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>cli</span> <span style='color:blueviolet'>import</span> <span style='color:darkgreen'>main</span> <span style='color:blueviolet'>as</span> <span style='color:darkgreen'>cli_main</span>
+<span style='color:blueviolet'>from</span> <span style='color:darkgreen'>flask</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>cli</span> <span style='color:blueviolet'>import</span> <span style='color:darkgreen'>NoAppException</span>
+<span style='color:blueviolet'>from</span> <span style='color:darkgreen'>flask</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>cli</span> <span style='color:blueviolet'>import</span> <span style='color:darkgreen'>prepare_import</span>
+<span style='color:blueviolet'>from</span> <span style='color:darkgreen'>flask</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>cli</span> <span style='color:blueviolet'>import</span> <span style='color:darkgreen'>run_command</span>
+<span style='color:blueviolet'>from</span> <span style='color:darkgreen'>flask</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>cli</span> <span style='color:blueviolet'>import</span> <span style='color:darkgreen'>ScriptInfo</span>
+<span style='color:blueviolet'>from</span> <span style='color:darkgreen'>flask</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>cli</span> <span style='color:blueviolet'>import</span> <span style='color:darkgreen'>with_appcontext</span>
+
+<span style='color:darkgreen'>cwd</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>Path</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>cwd</span>(<span style='color:deepskyblue'>)</span>
+<span style='color:darkgreen'>test_path</span> <span style='color:deepskyblue'>=</span> (<span style='color:darkgreen'>Path</span>(<span style='color:darkgreen'>__file__</span><span style='color:deepskyblue'>)</span> <span style='color:fuchsia'>/</span> <span style='color:crimson'>".."</span> <span style='color:fuchsia'>/</span> <span style='color:crimson'>"test_apps"</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>resolve</span>(<span style='color:deepskyblue'>)</span>
+
+
+<span style='color:deepskyblue'>@</span><span style='color:darkgreen'>pytest</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>fixture</span>
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>runner</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>CliRunner</span>(<span style='color:deepskyblue'>)</span>
+
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>test_cli_name</span>(<span style='color:darkgreen'>test_apps</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:crimson'>"""Make sure the CLI object's name is the app's name and not the app itself"""</span>
+    <span style='color:blueviolet'>from</span> <span style='color:darkgreen'>cliapp</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>app</span> <span style='color:blueviolet'>import</span> <span style='color:darkgreen'>testapp</span>
+
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>testapp</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>cli</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>name</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>testapp</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>name</span>
+
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>test_find_best_app</span>(<span style='color:darkgreen'>test_apps</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:darkgreen'>script_info</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>ScriptInfo</span>(<span style='color:deepskyblue'>)</span>
+
+    <span style='color:blueviolet'>class</span> <span style='color:darkgreen'>Module</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>app</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>Flask</span>(<span style='color:crimson'>"appname"</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>find_best_app</span>(<span style='color:darkgreen'>script_info</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>Module</span><span style='color:deepskyblue'>)</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>Module</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>app</span>
+
+    <span style='color:blueviolet'>class</span> <span style='color:darkgreen'>Module</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>application</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>Flask</span>(<span style='color:crimson'>"appname"</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>find_best_app</span>(<span style='color:darkgreen'>script_info</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>Module</span><span style='color:deepskyblue'>)</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>Module</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>application</span>
+
+    <span style='color:blueviolet'>class</span> <span style='color:darkgreen'>Module</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>myapp</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>Flask</span>(<span style='color:crimson'>"appname"</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>find_best_app</span>(<span style='color:darkgreen'>script_info</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>Module</span><span style='color:deepskyblue'>)</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>Module</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>myapp</span>
+
+    <span style='color:blueviolet'>class</span> <span style='color:darkgreen'>Module</span><span style='color:deepskyblue'>:</span>
+        <span style='color:deepskyblue'>@</span><span style='color:darkgreen'>staticmethod</span>
+        <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>create_app</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+            <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>Flask</span>(<span style='color:crimson'>"appname"</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkgreen'>app</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>find_best_app</span>(<span style='color:darkgreen'>script_info</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>Module</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>isinstance</span>(<span style='color:darkgreen'>app</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>Flask</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>app</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>name</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:crimson'>"appname"</span>
+
+    <span style='color:blueviolet'>class</span> <span style='color:darkgreen'>Module</span><span style='color:deepskyblue'>:</span>
+        <span style='color:deepskyblue'>@</span><span style='color:darkgreen'>staticmethod</span>
+        <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>create_app</span>(<span style='color:darkgreen'>foo</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+            <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>Flask</span>(<span style='color:crimson'>"appname"</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:blueviolet'>with</span> <span style='color:darkgreen'>pytest</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>deprecated_call</span>(<span style='color:darkgreen'>match</span><span style='color:deepskyblue'>=</span><span style='color:crimson'>"Script info"</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>app</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>find_best_app</span>(<span style='color:darkgreen'>script_info</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>Module</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>isinstance</span>(<span style='color:darkgreen'>app</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>Flask</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>app</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>name</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:crimson'>"appname"</span>
+
+    <span style='color:blueviolet'>class</span> <span style='color:darkgreen'>Module</span><span style='color:deepskyblue'>:</span>
+        <span style='color:deepskyblue'>@</span><span style='color:darkgreen'>staticmethod</span>
+        <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>create_app</span>(<span style='color:darkgreen'>foo</span><span style='color:deepskyblue'>=</span><span style='color:blueviolet'>None</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>script_info</span><span style='color:deepskyblue'>=</span><span style='color:blueviolet'>None</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+            <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>Flask</span>(<span style='color:crimson'>"appname"</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:blueviolet'>with</span> <span style='color:darkgreen'>pytest</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>deprecated_call</span>(<span style='color:darkgreen'>match</span><span style='color:deepskyblue'>=</span><span style='color:crimson'>"script_info"</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>app</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>find_best_app</span>(<span style='color:darkgreen'>script_info</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>Module</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>isinstance</span>(<span style='color:darkgreen'>app</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>Flask</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>app</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>name</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:crimson'>"appname"</span>
+
+    <span style='color:blueviolet'>class</span> <span style='color:darkgreen'>Module</span><span style='color:deepskyblue'>:</span>
+        <span style='color:deepskyblue'>@</span><span style='color:darkgreen'>staticmethod</span>
+        <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>make_app</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+            <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>Flask</span>(<span style='color:crimson'>"appname"</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkgreen'>app</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>find_best_app</span>(<span style='color:darkgreen'>script_info</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>Module</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>isinstance</span>(<span style='color:darkgreen'>app</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>Flask</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>app</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>name</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:crimson'>"appname"</span>
+
+    <span style='color:blueviolet'>class</span> <span style='color:darkgreen'>Module</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>myapp</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>Flask</span>(<span style='color:crimson'>"appname1"</span><span style='color:deepskyblue'>)</span>
+
+        <span style='color:deepskyblue'>@</span><span style='color:darkgreen'>staticmethod</span>
+        <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>create_app</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+            <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>Flask</span>(<span style='color:crimson'>"appname2"</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>find_best_app</span>(<span style='color:darkgreen'>script_info</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>Module</span><span style='color:deepskyblue'>)</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>Module</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>myapp</span>
+
+    <span style='color:blueviolet'>class</span> <span style='color:darkgreen'>Module</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>myapp</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>Flask</span>(<span style='color:crimson'>"appname1"</span><span style='color:deepskyblue'>)</span>
+
+        <span style='color:deepskyblue'>@</span><span style='color:darkgreen'>staticmethod</span>
+        <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>create_app</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+            <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>Flask</span>(<span style='color:crimson'>"appname2"</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>find_best_app</span>(<span style='color:darkgreen'>script_info</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>Module</span><span style='color:deepskyblue'>)</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>Module</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>myapp</span>
+
+    <span style='color:blueviolet'>class</span> <span style='color:darkgreen'>Module</span><span style='color:deepskyblue'>:</span>
+        <span style='color:blueviolet'>pass</span>
+
+    <span style='color:darkgreen'>pytest</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>raises</span>(<span style='color:darkgreen'>NoAppException</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>find_best_app</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>script_info</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>Module</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:blueviolet'>class</span> <span style='color:darkgreen'>Module</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>myapp1</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>Flask</span>(<span style='color:crimson'>"appname1"</span><span style='color:deepskyblue'>)</span>
+        <span style='color:darkgreen'>myapp2</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>Flask</span>(<span style='color:crimson'>"appname2"</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkgreen'>pytest</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>raises</span>(<span style='color:darkgreen'>NoAppException</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>find_best_app</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>script_info</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>Module</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:blueviolet'>class</span> <span style='color:darkgreen'>Module</span><span style='color:deepskyblue'>:</span>
+        <span style='color:deepskyblue'>@</span><span style='color:darkgreen'>staticmethod</span>
+        <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>create_app</span>(<span style='color:darkgreen'>foo</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>bar</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+            <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>Flask</span>(<span style='color:crimson'>"appname2"</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkgreen'>pytest</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>raises</span>(<span style='color:darkgreen'>NoAppException</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>find_best_app</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>script_info</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>Module</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:blueviolet'>class</span> <span style='color:darkgreen'>Module</span><span style='color:deepskyblue'>:</span>
+        <span style='color:deepskyblue'>@</span><span style='color:darkgreen'>staticmethod</span>
+        <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>create_app</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+            <span style='color:blueviolet'>raise</span> <span style='color:darkgreen'>TypeError</span>(<span style='color:crimson'>"bad bad factory!"</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkgreen'>pytest</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>raises</span>(<span style='color:darkgreen'>TypeError</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>find_best_app</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>script_info</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>Module</span><span style='color:deepskyblue'>)</span>
+
+
+<span style='color:deepskyblue'>@</span><span style='color:darkgreen'>pytest</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>mark</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>parametrize</span>(
+    <span style='color:crimson'>"value,path,result"</span><span style='color:deepskyblue'>,</span>
+    (
+        (<span style='color:crimson'>"test"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>cwd</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"test"</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span>
+        (<span style='color:crimson'>"test.py"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>cwd</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"test"</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span>
+        (<span style='color:crimson'>"a/test"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>cwd</span> <span style='color:fuchsia'>/</span> <span style='color:crimson'>"a"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"test"</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span>
+        (<span style='color:crimson'>"test/__init__.py"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>cwd</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"test"</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span>
+        (<span style='color:crimson'>"test/__init__"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>cwd</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"test"</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span>
+        <span style='color:darkblue'># nested package</span>
+        (
+            <span style='color:darkgreen'>test_path</span> <span style='color:fuchsia'>/</span> <span style='color:crimson'>"cliapp"</span> <span style='color:fuchsia'>/</span> <span style='color:crimson'>"inner1"</span> <span style='color:fuchsia'>/</span> <span style='color:crimson'>"__init__"</span><span style='color:deepskyblue'>,</span>
+            <span style='color:darkgreen'>test_path</span><span style='color:deepskyblue'>,</span>
+            <span style='color:crimson'>"cliapp.inner1"</span><span style='color:deepskyblue'>,</span>
+        <span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span>
+        (
+            <span style='color:darkgreen'>test_path</span> <span style='color:fuchsia'>/</span> <span style='color:crimson'>"cliapp"</span> <span style='color:fuchsia'>/</span> <span style='color:crimson'>"inner1"</span> <span style='color:fuchsia'>/</span> <span style='color:crimson'>"inner2"</span><span style='color:deepskyblue'>,</span>
+            <span style='color:darkgreen'>test_path</span><span style='color:deepskyblue'>,</span>
+            <span style='color:crimson'>"cliapp.inner1.inner2"</span><span style='color:deepskyblue'>,</span>
+        <span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span>
+        <span style='color:darkblue'># dotted name</span>
+        (<span style='color:crimson'>"test.a.b"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>cwd</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"test.a.b"</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span>
+        (<span style='color:darkgreen'>test_path</span> <span style='color:fuchsia'>/</span> <span style='color:crimson'>"cliapp.app"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>test_path</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"cliapp.app"</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span>
+        <span style='color:darkblue'># not a Python file, will be caught during import</span>
+        (<span style='color:darkgreen'>test_path</span> <span style='color:fuchsia'>/</span> <span style='color:crimson'>"cliapp"</span> <span style='color:fuchsia'>/</span> <span style='color:crimson'>"message.txt"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>test_path</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"cliapp.message.txt"</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span>
+    <span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span>
+<span style='color:deepskyblue'>)</span>
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>test_prepare_import</span>(<span style='color:darkgreen'>request</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>value</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>path</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>result</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:crimson'>"""Expect the correct path to be set and the correct import and app names
+    to be returned.
+    :func:`prepare_exec_for_file` has a side effect where the parent directory
+    of the given import is added to :data:`sys.path`. This is reset after the
+    test runs.
+    """</span>
+    <span style='color:darkgreen'>original_path</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>sys</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>path</span><span style='color:deepskyblue'>[</span><span style='color:deepskyblue'>:</span><span style='color:deepskyblue'>]</span>
+
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>reset_path</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>sys</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>path</span><span style='color:deepskyblue'>[</span><span style='color:deepskyblue'>:</span><span style='color:deepskyblue'>]</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>original_path</span>
+
+    <span style='color:darkgreen'>request</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>addfinalizer</span>(<span style='color:darkgreen'>reset_path</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>prepare_import</span>(<span style='color:darkgreen'>value</span><span style='color:deepskyblue'>)</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>result</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>sys</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>path</span><span style='color:deepskyblue'>[</span><span style='color:turquoise'>0</span><span style='color:deepskyblue'>]</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>str</span>(<span style='color:darkgreen'>path</span><span style='color:deepskyblue'>)</span>
+
+
+<span style='color:deepskyblue'>@</span><span style='color:darkgreen'>pytest</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>mark</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>parametrize</span>(
+    <span style='color:crimson'>"iname,aname,result"</span><span style='color:deepskyblue'>,</span>
+    (
+        (<span style='color:crimson'>"cliapp.app"</span><span style='color:deepskyblue'>,</span> <span style='color:blueviolet'>None</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"testapp"</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span>
+        (<span style='color:crimson'>"cliapp.app"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"testapp"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"testapp"</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span>
+        (<span style='color:crimson'>"cliapp.factory"</span><span style='color:deepskyblue'>,</span> <span style='color:blueviolet'>None</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"app"</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span>
+        (<span style='color:crimson'>"cliapp.factory"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"create_app"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"app"</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span>
+        (<span style='color:crimson'>"cliapp.factory"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"create_app()"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"app"</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span>
+        (<span style='color:crimson'>"cliapp.factory"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'create_app2("foo", "bar")'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"app2_foo_bar"</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span>
+        <span style='color:darkblue'># trailing comma space</span>
+        (<span style='color:crimson'>"cliapp.factory"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'create_app2("foo", "bar", )'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"app2_foo_bar"</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span>
+        <span style='color:darkblue'># strip whitespace</span>
+        (<span style='color:crimson'>"cliapp.factory"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>" create_app () "</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"app"</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span>
+    <span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span>
+<span style='color:deepskyblue'>)</span>
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>test_locate_app</span>(<span style='color:darkgreen'>test_apps</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>iname</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>aname</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>result</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:darkgreen'>info</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>ScriptInfo</span>(<span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>locate_app</span>(<span style='color:darkgreen'>info</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>iname</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>aname</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>name</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>result</span>
+
+
+<span style='color:deepskyblue'>@</span><span style='color:darkgreen'>pytest</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>mark</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>parametrize</span>(
+    <span style='color:crimson'>"iname,aname"</span><span style='color:deepskyblue'>,</span>
+    (
+        (<span style='color:crimson'>"notanapp.py"</span><span style='color:deepskyblue'>,</span> <span style='color:blueviolet'>None</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span>
+        (<span style='color:crimson'>"cliapp/app"</span><span style='color:deepskyblue'>,</span> <span style='color:blueviolet'>None</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span>
+        (<span style='color:crimson'>"cliapp.app"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"notanapp"</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span>
+        <span style='color:darkblue'># not enough arguments</span>
+        (<span style='color:crimson'>"cliapp.factory"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'create_app2("foo")'</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span>
+        <span style='color:darkblue'># invalid identifier</span>
+        (<span style='color:crimson'>"cliapp.factory"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"create_app("</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span>
+        <span style='color:darkblue'># no app returned</span>
+        (<span style='color:crimson'>"cliapp.factory"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"no_app"</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span>
+        <span style='color:darkblue'># nested import error</span>
+        (<span style='color:crimson'>"cliapp.importerrorapp"</span><span style='color:deepskyblue'>,</span> <span style='color:blueviolet'>None</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span>
+        <span style='color:darkblue'># not a Python file</span>
+        (<span style='color:crimson'>"cliapp.message.txt"</span><span style='color:deepskyblue'>,</span> <span style='color:blueviolet'>None</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span>
+    <span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span>
+<span style='color:deepskyblue'>)</span>
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>test_locate_app_raises</span>(<span style='color:darkgreen'>test_apps</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>iname</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>aname</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:darkgreen'>info</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>ScriptInfo</span>(<span style='color:deepskyblue'>)</span>
+
+    <span style='color:blueviolet'>with</span> <span style='color:darkgreen'>pytest</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>raises</span>(<span style='color:darkgreen'>NoAppException</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>locate_app</span>(<span style='color:darkgreen'>info</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>iname</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>aname</span><span style='color:deepskyblue'>)</span>
+
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>test_locate_app_suppress_raise</span>(<span style='color:darkgreen'>test_apps</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:darkgreen'>info</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>ScriptInfo</span>(<span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>app</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>locate_app</span>(<span style='color:darkgreen'>info</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"notanapp.py"</span><span style='color:deepskyblue'>,</span> <span style='color:blueviolet'>None</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>raise_if_not_found</span><span style='color:deepskyblue'>=</span><span style='color:blueviolet'>False</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>app</span> <span style='color:blueviolet'>is</span> <span style='color:blueviolet'>None</span>
+
+    <span style='color:darkblue'># only direct import error is suppressed</span>
+    <span style='color:blueviolet'>with</span> <span style='color:darkgreen'>pytest</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>raises</span>(<span style='color:darkgreen'>NoAppException</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>locate_app</span>(<span style='color:darkgreen'>info</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"cliapp.importerrorapp"</span><span style='color:deepskyblue'>,</span> <span style='color:blueviolet'>None</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>raise_if_not_found</span><span style='color:deepskyblue'>=</span><span style='color:blueviolet'>False</span><span style='color:deepskyblue'>)</span>
+
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>test_get_version</span>(<span style='color:darkgreen'>test_apps</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>capsys</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:blueviolet'>from</span> <span style='color:darkgreen'>flask</span> <span style='color:blueviolet'>import</span> <span style='color:darkgreen'>__version__</span> <span style='color:blueviolet'>as</span> <span style='color:darkgreen'>flask_version</span>
+    <span style='color:blueviolet'>from</span> <span style='color:darkgreen'>werkzeug</span> <span style='color:blueviolet'>import</span> <span style='color:darkgreen'>__version__</span> <span style='color:blueviolet'>as</span> <span style='color:darkgreen'>werkzeug_version</span>
+    <span style='color:blueviolet'>from</span> <span style='color:darkgreen'>platform</span> <span style='color:blueviolet'>import</span> <span style='color:darkgreen'>python_version</span>
+
+    <span style='color:blueviolet'>class</span> <span style='color:darkgreen'>MockCtx</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>resilient_parsing</span> <span style='color:deepskyblue'>=</span> <span style='color:blueviolet'>False</span>
+        <span style='color:darkgreen'>color</span> <span style='color:deepskyblue'>=</span> <span style='color:blueviolet'>None</span>
+
+        <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>exit</span>(<span style='color:darkgreen'>self</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+            <span style='color:blueviolet'>return</span>
+
+    <span style='color:darkgreen'>ctx</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>MockCtx</span>(<span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>get_version</span>(<span style='color:darkgreen'>ctx</span><span style='color:deepskyblue'>,</span> <span style='color:blueviolet'>None</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"test"</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>out</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>err</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>capsys</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>readouterr</span>(<span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:crimson'>f"Python {python_version()}"</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>out</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:crimson'>f"Flask {flask_version}"</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>out</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:crimson'>f"Werkzeug {werkzeug_version}"</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>out</span>
+
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>test_scriptinfo</span>(<span style='color:darkgreen'>test_apps</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>monkeypatch</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:darkgreen'>obj</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>ScriptInfo</span>(<span style='color:darkgreen'>app_import_path</span><span style='color:deepskyblue'>=</span><span style='color:crimson'>"cliapp.app:testapp"</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>app</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>obj</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>load_app</span>(<span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>app</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>name</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:crimson'>"testapp"</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>obj</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>load_app</span>(<span style='color:deepskyblue'>)</span> <span style='color:blueviolet'>is</span> <span style='color:darkgreen'>app</span>
+
+    <span style='color:darkblue'># import app with module's absolute path</span>
+    <span style='color:darkgreen'>cli_app_path</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>str</span>(<span style='color:darkgreen'>test_path</span> <span style='color:fuchsia'>/</span> <span style='color:crimson'>"cliapp"</span> <span style='color:fuchsia'>/</span> <span style='color:crimson'>"app.py"</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkgreen'>obj</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>ScriptInfo</span>(<span style='color:darkgreen'>app_import_path</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>cli_app_path</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>app</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>obj</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>load_app</span>(<span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>app</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>name</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:crimson'>"testapp"</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>obj</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>load_app</span>(<span style='color:deepskyblue'>)</span> <span style='color:blueviolet'>is</span> <span style='color:darkgreen'>app</span>
+    <span style='color:darkgreen'>obj</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>ScriptInfo</span>(<span style='color:darkgreen'>app_import_path</span><span style='color:deepskyblue'>=</span><span style='color:crimson'>f"{cli_app_path}:testapp"</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>app</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>obj</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>load_app</span>(<span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>app</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>name</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:crimson'>"testapp"</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>obj</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>load_app</span>(<span style='color:deepskyblue'>)</span> <span style='color:blueviolet'>is</span> <span style='color:darkgreen'>app</span>
+
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>create_app</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>Flask</span>(<span style='color:crimson'>"createapp"</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkgreen'>obj</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>ScriptInfo</span>(<span style='color:darkgreen'>create_app</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>create_app</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>app</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>obj</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>load_app</span>(<span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>app</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>name</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:crimson'>"createapp"</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>obj</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>load_app</span>(<span style='color:deepskyblue'>)</span> <span style='color:blueviolet'>is</span> <span style='color:darkgreen'>app</span>
+
+    <span style='color:darkgreen'>obj</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>ScriptInfo</span>(<span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>pytest</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>raises</span>(<span style='color:darkgreen'>NoAppException</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>obj</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>load_app</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkblue'># import app from wsgi.py in current directory</span>
+    <span style='color:darkgreen'>monkeypatch</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>chdir</span>(<span style='color:darkgreen'>test_path</span> <span style='color:fuchsia'>/</span> <span style='color:crimson'>"helloworld"</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>obj</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>ScriptInfo</span>(<span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>app</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>obj</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>load_app</span>(<span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>app</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>name</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:crimson'>"hello"</span>
+
+    <span style='color:darkblue'># import app from app.py in current directory</span>
+    <span style='color:darkgreen'>monkeypatch</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>chdir</span>(<span style='color:darkgreen'>test_path</span> <span style='color:fuchsia'>/</span> <span style='color:crimson'>"cliapp"</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>obj</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>ScriptInfo</span>(<span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>app</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>obj</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>load_app</span>(<span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>app</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>name</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:crimson'>"testapp"</span>
+
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>test_with_appcontext</span>(<span style='color:darkgreen'>runner</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:deepskyblue'>@</span><span style='color:darkgreen'>click</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>command</span>(<span style='color:deepskyblue'>)</span>
+    <span style='color:deepskyblue'>@</span><span style='color:darkgreen'>with_appcontext</span>
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>testcmd</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>click</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>echo</span>(<span style='color:darkgreen'>current_app</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>name</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkgreen'>obj</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>ScriptInfo</span>(<span style='color:darkgreen'>create_app</span><span style='color:deepskyblue'>=</span><span style='color:blueviolet'>lambda</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>Flask</span>(<span style='color:crimson'>"testapp"</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkgreen'>result</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>runner</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>invoke</span>(<span style='color:darkgreen'>testcmd</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>obj</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>obj</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>result</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>exit_code</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:turquoise'>0</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>result</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>output</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:crimson'>"testapp\n"</span>
+
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>test_appgroup</span>(<span style='color:darkgreen'>runner</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:deepskyblue'>@</span><span style='color:darkgreen'>click</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>group</span>(<span style='color:darkgreen'>cls</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>AppGroup</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>cli</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:blueviolet'>pass</span>
+
+    <span style='color:deepskyblue'>@</span><span style='color:darkgreen'>cli</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>command</span>(<span style='color:darkgreen'>with_appcontext</span><span style='color:deepskyblue'>=</span><span style='color:blueviolet'>True</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>test</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>click</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>echo</span>(<span style='color:darkgreen'>current_app</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>name</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:deepskyblue'>@</span><span style='color:darkgreen'>cli</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>group</span>(<span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>subgroup</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:blueviolet'>pass</span>
+
+    <span style='color:deepskyblue'>@</span><span style='color:darkgreen'>subgroup</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>command</span>(<span style='color:darkgreen'>with_appcontext</span><span style='color:deepskyblue'>=</span><span style='color:blueviolet'>True</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>test2</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>click</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>echo</span>(<span style='color:darkgreen'>current_app</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>name</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkgreen'>obj</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>ScriptInfo</span>(<span style='color:darkgreen'>create_app</span><span style='color:deepskyblue'>=</span><span style='color:blueviolet'>lambda</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>Flask</span>(<span style='color:crimson'>"testappgroup"</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkgreen'>result</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>runner</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>invoke</span>(<span style='color:darkgreen'>cli</span><span style='color:deepskyblue'>,</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>"test"</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>obj</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>obj</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>result</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>exit_code</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:turquoise'>0</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>result</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>output</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:crimson'>"testappgroup\n"</span>
+
+    <span style='color:darkgreen'>result</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>runner</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>invoke</span>(<span style='color:darkgreen'>cli</span><span style='color:deepskyblue'>,</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>"subgroup"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"test2"</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>obj</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>obj</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>result</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>exit_code</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:turquoise'>0</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>result</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>output</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:crimson'>"testappgroup\n"</span>
+
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>test_flaskgroup</span>(<span style='color:darkgreen'>runner</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>create_app</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>Flask</span>(<span style='color:crimson'>"flaskgroup"</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:deepskyblue'>@</span><span style='color:darkgreen'>click</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>group</span>(<span style='color:darkgreen'>cls</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>FlaskGroup</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>create_app</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>create_app</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>cli</span>(<span style='color:fuchsia'>**</span><span style='color:darkgreen'>params</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:blueviolet'>pass</span>
+
+    <span style='color:deepskyblue'>@</span><span style='color:darkgreen'>cli</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>command</span>(<span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>test</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>click</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>echo</span>(<span style='color:darkgreen'>current_app</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>name</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkgreen'>result</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>runner</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>invoke</span>(<span style='color:darkgreen'>cli</span><span style='color:deepskyblue'>,</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>"test"</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>result</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>exit_code</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:turquoise'>0</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>result</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>output</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:crimson'>"flaskgroup\n"</span>
+
+
+<span style='color:deepskyblue'>@</span><span style='color:darkgreen'>pytest</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>mark</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>parametrize</span>(<span style='color:crimson'>"set_debug_flag"</span><span style='color:deepskyblue'>,</span> (<span style='color:blueviolet'>True</span><span style='color:deepskyblue'>,</span> <span style='color:blueviolet'>False</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>test_flaskgroup_debug</span>(<span style='color:darkgreen'>runner</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>set_debug_flag</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>create_app</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>app</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>Flask</span>(<span style='color:crimson'>"flaskgroup"</span><span style='color:deepskyblue'>)</span>
+        <span style='color:darkgreen'>app</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>debug</span> <span style='color:deepskyblue'>=</span> <span style='color:blueviolet'>True</span>
+        <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>app</span>
+
+    <span style='color:deepskyblue'>@</span><span style='color:darkgreen'>click</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>group</span>(<span style='color:darkgreen'>cls</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>FlaskGroup</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>create_app</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>create_app</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>set_debug_flag</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>set_debug_flag</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>cli</span>(<span style='color:fuchsia'>**</span><span style='color:darkgreen'>params</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:blueviolet'>pass</span>
+
+    <span style='color:deepskyblue'>@</span><span style='color:darkgreen'>cli</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>command</span>(<span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>test</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>click</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>echo</span>(<span style='color:darkgreen'>str</span>(<span style='color:darkgreen'>current_app</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>debug</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkgreen'>result</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>runner</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>invoke</span>(<span style='color:darkgreen'>cli</span><span style='color:deepskyblue'>,</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>"test"</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>result</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>exit_code</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:turquoise'>0</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>result</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>output</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:crimson'>f"{not set_debug_flag}\n"</span>
+
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>test_no_command_echo_loading_error</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:blueviolet'>from</span> <span style='color:darkgreen'>flask</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>cli</span> <span style='color:blueviolet'>import</span> <span style='color:darkgreen'>cli</span>
+
+    <span style='color:darkgreen'>runner</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>CliRunner</span>(<span style='color:darkgreen'>mix_stderr</span><span style='color:deepskyblue'>=</span><span style='color:blueviolet'>False</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>result</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>runner</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>invoke</span>(<span style='color:darkgreen'>cli</span><span style='color:deepskyblue'>,</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>"missing"</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>result</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>exit_code</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:turquoise'>2</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:crimson'>"FLASK_APP"</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>result</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>stderr</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:crimson'>"Usage:"</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>result</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>stderr</span>
+
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>test_help_echo_loading_error</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:blueviolet'>from</span> <span style='color:darkgreen'>flask</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>cli</span> <span style='color:blueviolet'>import</span> <span style='color:darkgreen'>cli</span>
+
+    <span style='color:darkgreen'>runner</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>CliRunner</span>(<span style='color:darkgreen'>mix_stderr</span><span style='color:deepskyblue'>=</span><span style='color:blueviolet'>False</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>result</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>runner</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>invoke</span>(<span style='color:darkgreen'>cli</span><span style='color:deepskyblue'>,</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>"--help"</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>result</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>exit_code</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:turquoise'>0</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:crimson'>"FLASK_APP"</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>result</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>stderr</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:crimson'>"Usage:"</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>result</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>stdout</span>
+
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>test_help_echo_exception</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>create_app</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:blueviolet'>raise</span> <span style='color:darkgreen'>Exception</span>(<span style='color:crimson'>"oh no"</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkgreen'>cli</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>FlaskGroup</span>(<span style='color:darkgreen'>create_app</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>create_app</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>runner</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>CliRunner</span>(<span style='color:darkgreen'>mix_stderr</span><span style='color:deepskyblue'>=</span><span style='color:blueviolet'>False</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>result</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>runner</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>invoke</span>(<span style='color:darkgreen'>cli</span><span style='color:deepskyblue'>,</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>"--help"</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>result</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>exit_code</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:turquoise'>0</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:crimson'>"Exception: oh no"</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>result</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>stderr</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:crimson'>"Usage:"</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>result</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>stdout</span>
+
+
+<span style='color:blueviolet'>class</span> <span style='color:darkgreen'>TestRoutes</span><span style='color:deepskyblue'>:</span>
+    <span style='color:deepskyblue'>@</span><span style='color:darkgreen'>pytest</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>fixture</span>
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>invoke</span>(<span style='color:darkgreen'>self</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>runner</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>create_app</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>app</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>Flask</span>(<span style='color:darkgreen'>__name__</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>app</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>testing</span> <span style='color:deepskyblue'>=</span> <span style='color:blueviolet'>True</span>
+
+            <span style='color:deepskyblue'>@</span><span style='color:darkgreen'>app</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>route</span>(<span style='color:crimson'>"/get_post/<int:x>/<int:y>"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>methods</span><span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>[</span><span style='color:crimson'>"GET"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"POST"</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span>
+            <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>yyy_get_post</span>(<span style='color:darkgreen'>x</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>y</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+                <span style='color:blueviolet'>pass</span>
+
+            <span style='color:deepskyblue'>@</span><span style='color:darkgreen'>app</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>route</span>(<span style='color:crimson'>"/zzz_post"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>methods</span><span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>[</span><span style='color:crimson'>"POST"</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span>
+            <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>aaa_post</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+                <span style='color:blueviolet'>pass</span>
+
+            <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>app</span>
+
+        <span style='color:darkgreen'>cli</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>FlaskGroup</span>(<span style='color:darkgreen'>create_app</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>create_app</span><span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>partial</span>(<span style='color:darkgreen'>runner</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>invoke</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>cli</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:deepskyblue'>@</span><span style='color:darkgreen'>pytest</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>fixture</span>
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>invoke_no_routes</span>(<span style='color:darkgreen'>self</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>runner</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>create_app</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>app</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>Flask</span>(<span style='color:darkgreen'>__name__</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>static_folder</span><span style='color:deepskyblue'>=</span><span style='color:blueviolet'>None</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>app</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>testing</span> <span style='color:deepskyblue'>=</span> <span style='color:blueviolet'>True</span>
+
+            <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>app</span>
+
+        <span style='color:darkgreen'>cli</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>FlaskGroup</span>(<span style='color:darkgreen'>create_app</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>create_app</span><span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>partial</span>(<span style='color:darkgreen'>runner</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>invoke</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>cli</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>expect_order</span>(<span style='color:darkgreen'>self</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>order</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>output</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkblue'># skip the header and match the start of each row</span>
+        <span style='color:blueviolet'>for</span> <span style='color:darkgreen'>expect</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>line</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>zip</span>(<span style='color:darkgreen'>order</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>output</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>splitlines</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>[</span><span style='color:turquoise'>2</span><span style='color:deepskyblue'>:</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkblue'># do this instead of startswith for nicer pytest output</span>
+            <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>line</span><span style='color:deepskyblue'>[</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>len</span>(<span style='color:darkgreen'>expect</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>]</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>expect</span>
+
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>test_simple</span>(<span style='color:darkgreen'>self</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>invoke</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>result</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>invoke</span>(<span style='color:deepskyblue'>[</span><span style='color:crimson'>"routes"</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>result</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>exit_code</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:turquoise'>0</span>
+        <span style='color:darkgreen'>self</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>expect_order</span>(<span style='color:deepskyblue'>[</span><span style='color:crimson'>"aaa_post"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"static"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"yyy_get_post"</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>result</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>output</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>test_sort</span>(<span style='color:darkgreen'>self</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>invoke</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>default_output</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>invoke</span>(<span style='color:deepskyblue'>[</span><span style='color:crimson'>"routes"</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>output</span>
+        <span style='color:darkgreen'>endpoint_output</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>invoke</span>(<span style='color:deepskyblue'>[</span><span style='color:crimson'>"routes"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"-s"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"endpoint"</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>output</span>
+        <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>default_output</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>endpoint_output</span>
+        <span style='color:darkgreen'>self</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>expect_order</span>(
+            <span style='color:deepskyblue'>[</span><span style='color:crimson'>"static"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"yyy_get_post"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"aaa_post"</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>,</span>
+            <span style='color:darkgreen'>invoke</span>(<span style='color:deepskyblue'>[</span><span style='color:crimson'>"routes"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"-s"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"methods"</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>output</span><span style='color:deepskyblue'>,</span>
+        <span style='color:deepskyblue'>)</span>
+        <span style='color:darkgreen'>self</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>expect_order</span>(
+            <span style='color:deepskyblue'>[</span><span style='color:crimson'>"yyy_get_post"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"static"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"aaa_post"</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>,</span>
+            <span style='color:darkgreen'>invoke</span>(<span style='color:deepskyblue'>[</span><span style='color:crimson'>"routes"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"-s"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"rule"</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>output</span><span style='color:deepskyblue'>,</span>
+        <span style='color:deepskyblue'>)</span>
+        <span style='color:darkgreen'>self</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>expect_order</span>(
+            <span style='color:deepskyblue'>[</span><span style='color:crimson'>"aaa_post"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"yyy_get_post"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"static"</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>,</span>
+            <span style='color:darkgreen'>invoke</span>(<span style='color:deepskyblue'>[</span><span style='color:crimson'>"routes"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"-s"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"match"</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>output</span><span style='color:deepskyblue'>,</span>
+        <span style='color:deepskyblue'>)</span>
+
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>test_all_methods</span>(<span style='color:darkgreen'>self</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>invoke</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>output</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>invoke</span>(<span style='color:deepskyblue'>[</span><span style='color:crimson'>"routes"</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>output</span>
+        <span style='color:blueviolet'>assert</span> <span style='color:crimson'>"GET, HEAD, OPTIONS, POST"</span> <span style='color:blueviolet'>not</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>output</span>
+        <span style='color:darkgreen'>output</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>invoke</span>(<span style='color:deepskyblue'>[</span><span style='color:crimson'>"routes"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"--all-methods"</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>output</span>
+        <span style='color:blueviolet'>assert</span> <span style='color:crimson'>"GET, HEAD, OPTIONS, POST"</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>output</span>
+
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>test_no_routes</span>(<span style='color:darkgreen'>self</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>invoke_no_routes</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>result</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>invoke_no_routes</span>(<span style='color:deepskyblue'>[</span><span style='color:crimson'>"routes"</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>result</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>exit_code</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:turquoise'>0</span>
+        <span style='color:blueviolet'>assert</span> <span style='color:crimson'>"No routes were registered."</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>result</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>output</span>
+
+
+<span style='color:darkgreen'>need_dotenv</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>pytest</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>mark</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>skipif</span>(<span style='color:darkgreen'>dotenv</span> <span style='color:blueviolet'>is</span> <span style='color:blueviolet'>None</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>reason</span><span style='color:deepskyblue'>=</span><span style='color:crimson'>"dotenv is not installed"</span><span style='color:deepskyblue'>)</span>
+
+
+<span style='color:deepskyblue'>@</span><span style='color:darkgreen'>need_dotenv</span>
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>test_load_dotenv</span>(<span style='color:darkgreen'>monkeypatch</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:darkblue'># can't use monkeypatch.delitem since the keys don't exist yet</span>
+    <span style='color:blueviolet'>for</span> <span style='color:darkgreen'>item</span> <span style='color:blueviolet'>in</span> (<span style='color:crimson'>"FOO"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"BAR"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"SPAM"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"HAM"</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>monkeypatch</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>_setitem</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>append</span>((<span style='color:darkgreen'>os</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>environ</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>item</span><span style='color:deepskyblue'>,</span> <span style='color:blueviolet'>not</span>set<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkgreen'>monkeypatch</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>setenv</span>(<span style='color:crimson'>"EGGS"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"3"</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>monkeypatch</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>chdir</span>(<span style='color:darkgreen'>test_path</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>load_dotenv</span>(<span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>Path</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>cwd</span>(<span style='color:deepskyblue'>)</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>test_path</span>
+    <span style='color:darkblue'># .flaskenv doesn't overwrite .env</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>os</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>environ</span><span style='color:deepskyblue'>[</span><span style='color:crimson'>"FOO"</span><span style='color:deepskyblue'>]</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:crimson'>"env"</span>
+    <span style='color:darkblue'># set only in .flaskenv</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>os</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>environ</span><span style='color:deepskyblue'>[</span><span style='color:crimson'>"BAR"</span><span style='color:deepskyblue'>]</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:crimson'>"bar"</span>
+    <span style='color:darkblue'># set only in .env</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>os</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>environ</span><span style='color:deepskyblue'>[</span><span style='color:crimson'>"SPAM"</span><span style='color:deepskyblue'>]</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:crimson'>"1"</span>
+    <span style='color:darkblue'># set manually, files don't overwrite</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>os</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>environ</span><span style='color:deepskyblue'>[</span><span style='color:crimson'>"EGGS"</span><span style='color:deepskyblue'>]</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:crimson'>"3"</span>
+    <span style='color:darkblue'># test env file encoding</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>os</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>environ</span><span style='color:deepskyblue'>[</span><span style='color:crimson'>"HAM"</span><span style='color:deepskyblue'>]</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:crimson'>"火腿"</span>
+    <span style='color:darkblue'># Non existent file should not load</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:blueviolet'>not</span> <span style='color:darkgreen'>load_dotenv</span>(<span style='color:crimson'>"non-existent-file"</span><span style='color:deepskyblue'>)</span>
+
+
+<span style='color:deepskyblue'>@</span><span style='color:darkgreen'>need_dotenv</span>
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>test_dotenv_path</span>(<span style='color:darkgreen'>monkeypatch</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:blueviolet'>for</span> <span style='color:darkgreen'>item</span> <span style='color:blueviolet'>in</span> (<span style='color:crimson'>"FOO"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"BAR"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"EGGS"</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>monkeypatch</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>_setitem</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>append</span>((<span style='color:darkgreen'>os</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>environ</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>item</span><span style='color:deepskyblue'>,</span> <span style='color:blueviolet'>not</span>set<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkgreen'>load_dotenv</span>(<span style='color:darkgreen'>test_path</span> <span style='color:fuchsia'>/</span> <span style='color:crimson'>".flaskenv"</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>Path</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>cwd</span>(<span style='color:deepskyblue'>)</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>cwd</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:crimson'>"FOO"</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>os</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>environ</span>
+
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>test_dotenv_optional</span>(<span style='color:darkgreen'>monkeypatch</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:darkgreen'>monkeypatch</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>setattr</span>(<span style='color:crimson'>"flask.cli.dotenv"</span><span style='color:deepskyblue'>,</span> <span style='color:blueviolet'>None</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>monkeypatch</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>chdir</span>(<span style='color:darkgreen'>test_path</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>load_dotenv</span>(<span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:crimson'>"FOO"</span> <span style='color:blueviolet'>not</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>os</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>environ</span>
+
+
+<span style='color:deepskyblue'>@</span><span style='color:darkgreen'>need_dotenv</span>
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>test_disable_dotenv_from_env</span>(<span style='color:darkgreen'>monkeypatch</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>runner</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:darkgreen'>monkeypatch</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>chdir</span>(<span style='color:darkgreen'>test_path</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>monkeypatch</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>setitem</span>(<span style='color:darkgreen'>os</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>environ</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"FLASK_SKIP_DOTENV"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"1"</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>runner</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>invoke</span>(<span style='color:darkgreen'>FlaskGroup</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:crimson'>"FOO"</span> <span style='color:blueviolet'>not</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>os</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>environ</span>
+
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>test_run_cert_path</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:darkblue'># no key</span>
+    <span style='color:blueviolet'>with</span> <span style='color:darkgreen'>pytest</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>raises</span>(<span style='color:darkgreen'>click</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>BadParameter</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>run_command</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>make_context</span>(<span style='color:crimson'>"run"</span><span style='color:deepskyblue'>,</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>"--cert"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>__file__</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkblue'># no cert</span>
+    <span style='color:blueviolet'>with</span> <span style='color:darkgreen'>pytest</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>raises</span>(<span style='color:darkgreen'>click</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>BadParameter</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>run_command</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>make_context</span>(<span style='color:crimson'>"run"</span><span style='color:deepskyblue'>,</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>"--key"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>__file__</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkgreen'>ctx</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>run_command</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>make_context</span>(<span style='color:crimson'>"run"</span><span style='color:deepskyblue'>,</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>"--cert"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>__file__</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"--key"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>__file__</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>ctx</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>params</span><span style='color:deepskyblue'>[</span><span style='color:crimson'>"cert"</span><span style='color:deepskyblue'>]</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> (<span style='color:darkgreen'>__file__</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>__file__</span><span style='color:deepskyblue'>)</span>
+
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>test_run_cert_adhoc</span>(<span style='color:darkgreen'>monkeypatch</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:darkgreen'>monkeypatch</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>setitem</span>(<span style='color:darkgreen'>sys</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>modules</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"cryptography"</span><span style='color:deepskyblue'>,</span> <span style='color:blueviolet'>None</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkblue'># cryptography not installed</span>
+    <span style='color:blueviolet'>with</span> <span style='color:darkgreen'>pytest</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>raises</span>(<span style='color:darkgreen'>click</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>BadParameter</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>run_command</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>make_context</span>(<span style='color:crimson'>"run"</span><span style='color:deepskyblue'>,</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>"--cert"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"adhoc"</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkblue'># cryptography installed</span>
+    <span style='color:darkgreen'>monkeypatch</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>setitem</span>(<span style='color:darkgreen'>sys</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>modules</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"cryptography"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>types</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>ModuleType</span>(<span style='color:crimson'>"cryptography"</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>ctx</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>run_command</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>make_context</span>(<span style='color:crimson'>"run"</span><span style='color:deepskyblue'>,</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>"--cert"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"adhoc"</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>ctx</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>params</span><span style='color:deepskyblue'>[</span><span style='color:crimson'>"cert"</span><span style='color:deepskyblue'>]</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:crimson'>"adhoc"</span>
+
+    <span style='color:darkblue'># no key with adhoc</span>
+    <span style='color:blueviolet'>with</span> <span style='color:darkgreen'>pytest</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>raises</span>(<span style='color:darkgreen'>click</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>BadParameter</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>run_command</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>make_context</span>(<span style='color:crimson'>"run"</span><span style='color:deepskyblue'>,</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>"--cert"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"adhoc"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"--key"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>__file__</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span>
+
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>test_run_cert_import</span>(<span style='color:darkgreen'>monkeypatch</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:darkgreen'>monkeypatch</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>setitem</span>(<span style='color:darkgreen'>sys</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>modules</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"not_here"</span><span style='color:deepskyblue'>,</span> <span style='color:blueviolet'>None</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkblue'># ImportError</span>
+    <span style='color:blueviolet'>with</span> <span style='color:darkgreen'>pytest</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>raises</span>(<span style='color:darkgreen'>click</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>BadParameter</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>run_command</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>make_context</span>(<span style='color:crimson'>"run"</span><span style='color:deepskyblue'>,</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>"--cert"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"not_here"</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:blueviolet'>with</span> <span style='color:darkgreen'>pytest</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>raises</span>(<span style='color:darkgreen'>click</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>BadParameter</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>run_command</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>make_context</span>(<span style='color:crimson'>"run"</span><span style='color:deepskyblue'>,</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>"--cert"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"flask"</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkblue'># SSLContext</span>
+    <span style='color:darkgreen'>ssl_context</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>ssl</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>SSLContext</span>(<span style='color:darkgreen'>ssl</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>PROTOCOL_TLS_SERVER</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkgreen'>monkeypatch</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>setitem</span>(<span style='color:darkgreen'>sys</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>modules</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"ssl_context"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>ssl_context</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>ctx</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>run_command</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>make_context</span>(<span style='color:crimson'>"run"</span><span style='color:deepskyblue'>,</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>"--cert"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"ssl_context"</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>ctx</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>params</span><span style='color:deepskyblue'>[</span><span style='color:crimson'>"cert"</span><span style='color:deepskyblue'>]</span> <span style='color:blueviolet'>is</span> <span style='color:darkgreen'>ssl_context</span>
+
+    <span style='color:darkblue'># no --key with SSLContext</span>
+    <span style='color:blueviolet'>with</span> <span style='color:darkgreen'>pytest</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>raises</span>(<span style='color:darkgreen'>click</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>BadParameter</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>run_command</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>make_context</span>(<span style='color:crimson'>"run"</span><span style='color:deepskyblue'>,</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>"--cert"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"ssl_context"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"--key"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>__file__</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span>
+
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>test_run_cert_no_ssl</span>(<span style='color:darkgreen'>monkeypatch</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:darkgreen'>monkeypatch</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>setattr</span>(<span style='color:crimson'>"flask.cli.ssl"</span><span style='color:deepskyblue'>,</span> <span style='color:blueviolet'>None</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>with</span> <span style='color:darkgreen'>pytest</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>raises</span>(<span style='color:darkgreen'>click</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>BadParameter</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>run_command</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>make_context</span>(<span style='color:crimson'>"run"</span><span style='color:deepskyblue'>,</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>"--cert"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"not_here"</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span>
+
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>test_cli_blueprints</span>(<span style='color:darkgreen'>app</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:crimson'>"""Test blueprint commands register correctly to the application"""</span>
+    <span style='color:darkgreen'>custom</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>Blueprint</span>(<span style='color:crimson'>"custom"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>__name__</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>cli_group</span><span style='color:deepskyblue'>=</span><span style='color:crimson'>"customized"</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>nested</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>Blueprint</span>(<span style='color:crimson'>"nested"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>__name__</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>merged</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>Blueprint</span>(<span style='color:crimson'>"merged"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>__name__</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>cli_group</span><span style='color:deepskyblue'>=</span><span style='color:blueviolet'>None</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>late</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>Blueprint</span>(<span style='color:crimson'>"late"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>__name__</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:deepskyblue'>@</span><span style='color:darkgreen'>custom</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>cli</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>command</span>(<span style='color:crimson'>"custom"</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>custom_command</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>click</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>echo</span>(<span style='color:crimson'>"custom_result"</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:deepskyblue'>@</span><span style='color:darkgreen'>nested</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>cli</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>command</span>(<span style='color:crimson'>"nested"</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>nested_command</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>click</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>echo</span>(<span style='color:crimson'>"nested_result"</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:deepskyblue'>@</span><span style='color:darkgreen'>merged</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>cli</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>command</span>(<span style='color:crimson'>"merged"</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>merged_command</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>click</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>echo</span>(<span style='color:crimson'>"merged_result"</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:deepskyblue'>@</span><span style='color:darkgreen'>late</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>cli</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>command</span>(<span style='color:crimson'>"late"</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>late_command</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>click</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>echo</span>(<span style='color:crimson'>"late_result"</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkgreen'>app</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>register_blueprint</span>(<span style='color:darkgreen'>custom</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>app</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>register_blueprint</span>(<span style='color:darkgreen'>nested</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>app</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>register_blueprint</span>(<span style='color:darkgreen'>merged</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>app</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>register_blueprint</span>(<span style='color:darkgreen'>late</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>cli_group</span><span style='color:deepskyblue'>=</span><span style='color:crimson'>"late_registration"</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkgreen'>app_runner</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>app</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>test_cli_runner</span>(<span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkgreen'>result</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>app_runner</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>invoke</span>(<span style='color:darkgreen'>args</span><span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>[</span><span style='color:crimson'>"customized"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"custom"</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:crimson'>"custom_result"</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>result</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>output</span>
+
+    <span style='color:darkgreen'>result</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>app_runner</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>invoke</span>(<span style='color:darkgreen'>args</span><span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>[</span><span style='color:crimson'>"nested"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"nested"</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:crimson'>"nested_result"</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>result</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>output</span>
+
+    <span style='color:darkgreen'>result</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>app_runner</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>invoke</span>(<span style='color:darkgreen'>args</span><span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>[</span><span style='color:crimson'>"merged"</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:crimson'>"merged_result"</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>result</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>output</span>
+
+    <span style='color:darkgreen'>result</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>app_runner</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>invoke</span>(<span style='color:darkgreen'>args</span><span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>[</span><span style='color:crimson'>"late_registration"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"late"</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:crimson'>"late_result"</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>result</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>output</span>
+
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>test_cli_empty</span>(<span style='color:darkgreen'>app</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:crimson'>"""If a Blueprint's CLI group is empty, do not register it."""</span>
+    <span style='color:darkgreen'>bp</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>Blueprint</span>(<span style='color:crimson'>"blue"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>__name__</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>cli_group</span><span style='color:deepskyblue'>=</span><span style='color:crimson'>"blue"</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>app</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>register_blueprint</span>(<span style='color:darkgreen'>bp</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkgreen'>result</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>app</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>test_cli_runner</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>invoke</span>(<span style='color:darkgreen'>args</span><span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>[</span><span style='color:crimson'>"blue"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"--help"</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>assert</span> <span style='color:darkgreen'>result</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>exit_code</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:turquoise'>2</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>f"Unexpected success:\n\n{result.output}"</span>
+
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>test_click_7_deprecated</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:blueviolet'>with</span> <span style='color:darkgreen'>patch</span>(<span style='color:crimson'>"flask.cli.cli"</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>int</span>(<span style='color:darkgreen'>click</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>__version__</span><span style='color:deepskyblue'>[</span><span style='color:turquoise'>0</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span> <span style='color:fuchsia'><</span> <span style='color:turquoise'>8</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>pytest</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>deprecated_call</span>(<span style='color:darkgreen'>cli_main</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>match</span><span style='color:deepskyblue'>=</span><span style='color:crimson'>".* Click 7 is deprecated"</span><span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>else</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>cli_main</span>(<span style='color:deepskyblue'>)</span>
+        </pre>
+    </body>
+</html>

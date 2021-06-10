@@ -1,0 +1,806 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="categorical-styles.css">
+        <title>Documento de python resaltado</title>
+    </head>
+    <body>
+        <pre><span style='color:darkblue'>#!/usr/bin/python3</span>
+<span style='color:darkblue'>#  * Copyright (c) 2019 TAOS Data, Inc. <jhtao@taosdata.com></span>
+<span style='color:darkblue'>#  *</span>
+<span style='color:darkblue'>#  * This program is free software: you can use, redistribute, and/or modify</span>
+<span style='color:darkblue'>#  * it under the terms of the GNU Affero General Public License, version 3</span>
+<span style='color:darkblue'>#  * or later ("AGPL"), as published by the Free Software Foundation.</span>
+<span style='color:darkblue'>#  *</span>
+<span style='color:darkblue'>#  * This program is distributed in the hope that it will be useful, but WITHOUT</span>
+<span style='color:darkblue'>#  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or</span>
+<span style='color:darkblue'>#  * FITNESS FOR A PARTICULAR PURPOSE.</span>
+<span style='color:darkblue'>#  *</span>
+<span style='color:darkblue'>#  * You should have received a copy of the GNU Affero General Public License</span>
+<span style='color:darkblue'>#  * along with this program. If not, see <http://www.gnu.org/licenses/>.</span>
+
+<span style='color:darkblue'># -*- coding: utf-8 -*-</span>
+
+<span style='color:blueviolet'>import</span> <span style='color:darkgreen'>sys</span>
+<span style='color:blueviolet'>import</span> <span style='color:darkgreen'>getopt</span>
+<span style='color:blueviolet'>import</span> <span style='color:darkgreen'>requests</span>
+<span style='color:blueviolet'>import</span> <span style='color:darkgreen'>json</span>
+<span style='color:blueviolet'>import</span> <span style='color:darkgreen'>random</span>
+<span style='color:blueviolet'>import</span> <span style='color:darkgreen'>time</span>
+<span style='color:blueviolet'>import</span> <span style='color:darkgreen'>datetime</span>
+<span style='color:blueviolet'>from</span> <span style='color:darkgreen'>multiprocessing</span> <span style='color:blueviolet'>import</span> <span style='color:darkgreen'>Manager</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>Pool</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>Lock</span>
+<span style='color:blueviolet'>from</span> <span style='color:darkgreen'>multipledispatch</span> <span style='color:blueviolet'>import</span> <span style='color:darkgreen'>dispatch</span>
+<span style='color:blueviolet'>from</span> <span style='color:darkgreen'>concurrent</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>futures</span> <span style='color:blueviolet'>import</span> <span style='color:darkgreen'>ThreadPoolExecutor</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>wait</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>ALL_COMPLETED</span>
+
+
+<span style='color:deepskyblue'>@</span><span style='color:darkgreen'>dispatch</span>(<span style='color:darkgreen'>str</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>str</span><span style='color:deepskyblue'>)</span>
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>v_print</span>(<span style='color:darkgreen'>msg</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>str</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>arg</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>str</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>verbose</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>print</span>(<span style='color:darkgreen'>msg</span> <span style='color:fuchsia'>%</span> <span style='color:darkgreen'>arg</span><span style='color:deepskyblue'>)</span>
+
+
+<span style='color:deepskyblue'>@</span><span style='color:darkgreen'>dispatch</span>(<span style='color:darkgreen'>str</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>str</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>str</span><span style='color:deepskyblue'>)</span>
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>v_print</span>(<span style='color:darkgreen'>msg</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>str</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>arg1</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>str</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>arg2</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>str</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>verbose</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>print</span>(<span style='color:darkgreen'>msg</span> <span style='color:fuchsia'>%</span> (<span style='color:darkgreen'>arg1</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>arg2</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+
+
+<span style='color:deepskyblue'>@</span><span style='color:darkgreen'>dispatch</span>(<span style='color:darkgreen'>str</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>str</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>str</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>str</span><span style='color:deepskyblue'>)</span>
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>v_print</span>(<span style='color:darkgreen'>msg</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>str</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>arg1</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>str</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>arg2</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>str</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>arg3</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>str</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>verbose</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>print</span>(<span style='color:darkgreen'>msg</span> <span style='color:fuchsia'>%</span> (<span style='color:darkgreen'>arg1</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>arg2</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>arg3</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+
+
+<span style='color:deepskyblue'>@</span><span style='color:darkgreen'>dispatch</span>(<span style='color:darkgreen'>str</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>str</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>str</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>str</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>str</span><span style='color:deepskyblue'>)</span>
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>v_print</span>(<span style='color:darkgreen'>msg</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>str</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>arg1</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>str</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>arg2</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>str</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>arg3</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>str</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>arg4</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>str</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>verbose</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>print</span>(<span style='color:darkgreen'>msg</span> <span style='color:fuchsia'>%</span> (<span style='color:darkgreen'>arg1</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>arg2</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>arg3</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>arg4</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+
+
+<span style='color:deepskyblue'>@</span><span style='color:darkgreen'>dispatch</span>(<span style='color:darkgreen'>str</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>int</span><span style='color:deepskyblue'>)</span>
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>v_print</span>(<span style='color:darkgreen'>msg</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>str</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>arg</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>int</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>verbose</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>print</span>(<span style='color:darkgreen'>msg</span> <span style='color:fuchsia'>%</span> <span style='color:darkgreen'>int</span>(<span style='color:darkgreen'>arg</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+
+
+<span style='color:deepskyblue'>@</span><span style='color:darkgreen'>dispatch</span>(<span style='color:darkgreen'>str</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>int</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>str</span><span style='color:deepskyblue'>)</span>
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>v_print</span>(<span style='color:darkgreen'>msg</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>str</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>arg1</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>int</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>arg2</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>str</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>verbose</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>print</span>(<span style='color:darkgreen'>msg</span> <span style='color:fuchsia'>%</span> (<span style='color:darkgreen'>int</span>(<span style='color:darkgreen'>arg1</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>str</span>(<span style='color:darkgreen'>arg2</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+
+
+<span style='color:deepskyblue'>@</span><span style='color:darkgreen'>dispatch</span>(<span style='color:darkgreen'>str</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>str</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>int</span><span style='color:deepskyblue'>)</span>
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>v_print</span>(<span style='color:darkgreen'>msg</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>str</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>arg1</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>str</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>arg2</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>int</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>verbose</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>print</span>(<span style='color:darkgreen'>msg</span> <span style='color:fuchsia'>%</span> (<span style='color:darkgreen'>arg1</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>int</span>(<span style='color:darkgreen'>arg2</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+
+
+<span style='color:deepskyblue'>@</span><span style='color:darkgreen'>dispatch</span>(<span style='color:darkgreen'>str</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>int</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>int</span><span style='color:deepskyblue'>)</span>
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>v_print</span>(<span style='color:darkgreen'>msg</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>str</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>arg1</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>int</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>arg2</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>int</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>verbose</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>print</span>(<span style='color:darkgreen'>msg</span> <span style='color:fuchsia'>%</span> (<span style='color:darkgreen'>int</span>(<span style='color:darkgreen'>arg1</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>int</span>(<span style='color:darkgreen'>arg2</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+
+
+<span style='color:deepskyblue'>@</span><span style='color:darkgreen'>dispatch</span>(<span style='color:darkgreen'>str</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>int</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>int</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>str</span><span style='color:deepskyblue'>)</span>
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>v_print</span>(<span style='color:darkgreen'>msg</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>str</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>arg1</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>int</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>arg2</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>int</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>arg3</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>str</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>verbose</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>print</span>(<span style='color:darkgreen'>msg</span> <span style='color:fuchsia'>%</span> (<span style='color:darkgreen'>int</span>(<span style='color:darkgreen'>arg1</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>int</span>(<span style='color:darkgreen'>arg2</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>str</span>(<span style='color:darkgreen'>arg3</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+
+
+<span style='color:deepskyblue'>@</span><span style='color:darkgreen'>dispatch</span>(<span style='color:darkgreen'>str</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>int</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>int</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>int</span><span style='color:deepskyblue'>)</span>
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>v_print</span>(<span style='color:darkgreen'>msg</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>str</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>arg1</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>int</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>arg2</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>int</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>arg3</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>int</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>verbose</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>print</span>(<span style='color:darkgreen'>msg</span> <span style='color:fuchsia'>%</span> (<span style='color:darkgreen'>int</span>(<span style='color:darkgreen'>arg1</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>int</span>(<span style='color:darkgreen'>arg2</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>int</span>(<span style='color:darkgreen'>arg3</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+
+
+<span style='color:deepskyblue'>@</span><span style='color:darkgreen'>dispatch</span>(<span style='color:darkgreen'>str</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>int</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>int</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>int</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>int</span><span style='color:deepskyblue'>)</span>
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>v_print</span>(<span style='color:darkgreen'>msg</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>str</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>arg1</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>int</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>arg2</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>int</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>arg3</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>int</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>arg4</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>int</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>verbose</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>print</span>(<span style='color:darkgreen'>msg</span> <span style='color:fuchsia'>%</span> (<span style='color:darkgreen'>int</span>(<span style='color:darkgreen'>arg1</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>int</span>(<span style='color:darkgreen'>arg2</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>int</span>(<span style='color:darkgreen'>arg3</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>int</span>(<span style='color:darkgreen'>arg4</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>restful_execute</span>(<span style='color:darkgreen'>host</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>str</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>port</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>int</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>user</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>str</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>password</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>str</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>cmd</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>str</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:darkgreen'>url</span> <span style='color:deepskyblue'>=</span> <span style='color:crimson'>"http://%s:%d/rest/sql"</span> <span style='color:fuchsia'>%</span> (<span style='color:darkgreen'>host</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>restPort</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkgreen'>v_print</span>(<span style='color:crimson'>"restful_execute - cmd: %s"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>cmd</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkgreen'>resp</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>requests</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>post</span>(<span style='color:darkgreen'>url</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>cmd</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>auth</span><span style='color:deepskyblue'>=</span>(<span style='color:darkgreen'>user</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>password</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkgreen'>v_print</span>(<span style='color:crimson'>"resp status: %d"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>resp</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>status_code</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>debug</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>v_print</span>(
+            <span style='color:crimson'>"resp text: %s"</span><span style='color:deepskyblue'>,</span>
+            <span style='color:darkgreen'>json</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>dumps</span>(
+                <span style='color:darkgreen'>resp</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>json</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span>
+                <span style='color:darkgreen'>sort_keys</span><span style='color:deepskyblue'>=</span><span style='color:blueviolet'>True</span><span style='color:deepskyblue'>,</span>
+                <span style='color:darkgreen'>indent</span><span style='color:deepskyblue'>=</span><span style='color:turquoise'>2</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>else</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"resp: %s"</span> <span style='color:fuchsia'>%</span> <span style='color:darkgreen'>json</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>dumps</span>(<span style='color:darkgreen'>resp</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>json</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>query_func</span>(<span style='color:darkgreen'>process</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>int</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>thread</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>int</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>cmd</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>str</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:darkgreen'>v_print</span>(<span style='color:crimson'>"%d process %d thread cmd: %s"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>process</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>thread</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>cmd</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>oneMoreHost</span> <span style='color:fuchsia'>!=</span> <span style='color:crimson'>"NotSupported"</span> <span style='color:blueviolet'>and</span> <span style='color:darkgreen'>random</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>randint</span>(
+            <span style='color:turquoise'>0</span><span style='color:deepskyblue'>,</span> <span style='color:turquoise'>1</span><span style='color:deepskyblue'>)</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:turquoise'>1</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>v_print</span>(<span style='color:crimson'>"%s"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"Send to second host"</span><span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>native</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>cursor2</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>execute</span>(<span style='color:darkgreen'>cmd</span><span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>else</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>restful_execute</span>(
+                <span style='color:darkgreen'>oneMoreHost</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>port</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>user</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>password</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>cmd</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>else</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>v_print</span>(<span style='color:crimson'>"%s%s%s"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"Send "</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>cmd</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>" to the host"</span><span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>native</span><span style='color:deepskyblue'>:</span>
+            <span style='color:blueviolet'>pass</span>
+<span style='color:darkblue'>#            cursor.execute(cmd)</span>
+        <span style='color:blueviolet'>else</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>restful_execute</span>(
+                <span style='color:darkgreen'>host</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>port</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>user</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>password</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>cmd</span><span style='color:deepskyblue'>)</span>
+
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>query_data_process</span>(<span style='color:darkgreen'>cmd</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>str</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:darkblue'># establish connection if native</span>
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>native</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>v_print</span>(<span style='color:crimson'>"host:%s, user:%s passwd:%s configDir:%s "</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>host</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>user</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>password</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>configDir</span><span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>try</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>conn</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>taos</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>connect</span>(
+                <span style='color:darkgreen'>host</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>host</span><span style='color:deepskyblue'>,</span>
+                <span style='color:darkgreen'>user</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>user</span><span style='color:deepskyblue'>,</span>
+                <span style='color:darkgreen'>password</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>password</span><span style='color:deepskyblue'>,</span>
+                <span style='color:darkgreen'>config</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>configDir</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>v_print</span>(<span style='color:crimson'>"conn: %s"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>str</span>(<span style='color:darkgreen'>conn</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>__class__</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>except</span> <span style='color:darkgreen'>Exception</span> <span style='color:blueviolet'>as</span> <span style='color:darkgreen'>e</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"Error: %s"</span> <span style='color:fuchsia'>%</span> <span style='color:darkgreen'>e</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>args</span><span style='color:deepskyblue'>[</span><span style='color:turquoise'>0</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>sys</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>exit</span>(<span style='color:turquoise'>1</span><span style='color:deepskyblue'>)</span>
+
+        <span style='color:blueviolet'>try</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>cursor</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>conn</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>cursor</span>(<span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>v_print</span>(<span style='color:crimson'>"cursor:%d %s"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>id</span>(<span style='color:darkgreen'>cursor</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>str</span>(<span style='color:darkgreen'>cursor</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>__class__</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>except</span> <span style='color:darkgreen'>Exception</span> <span style='color:blueviolet'>as</span> <span style='color:darkgreen'>e</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"Error: %s"</span> <span style='color:fuchsia'>%</span> <span style='color:darkgreen'>e</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>args</span><span style='color:deepskyblue'>[</span><span style='color:turquoise'>0</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>conn</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>close</span>(<span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>sys</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>exit</span>(<span style='color:turquoise'>1</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>native</span><span style='color:deepskyblue'>:</span>
+        <span style='color:blueviolet'>try</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>cursor</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>execute</span>(<span style='color:darkgreen'>cmd</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>cols</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>cursor</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>description</span>
+            <span style='color:darkgreen'>data</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>cursor</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>fetchall</span>(<span style='color:deepskyblue'>)</span>
+
+            <span style='color:blueviolet'>for</span> <span style='color:darkgreen'>col</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>data</span><span style='color:deepskyblue'>:</span>
+                <span style='color:darkgreen'>print</span>(<span style='color:darkgreen'>col</span><span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>except</span> <span style='color:darkgreen'>Exception</span> <span style='color:blueviolet'>as</span> <span style='color:darkgreen'>e</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>conn</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>close</span>(<span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"Error: %s"</span> <span style='color:fuchsia'>%</span> <span style='color:darkgreen'>e</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>args</span><span style='color:deepskyblue'>[</span><span style='color:turquoise'>0</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>sys</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>exit</span>(<span style='color:turquoise'>1</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:blueviolet'>else</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>restful_execute</span>(
+                <span style='color:darkgreen'>host</span><span style='color:deepskyblue'>,</span>
+                <span style='color:darkgreen'>port</span><span style='color:deepskyblue'>,</span>
+                <span style='color:darkgreen'>user</span><span style='color:deepskyblue'>,</span>
+                <span style='color:darkgreen'>password</span><span style='color:deepskyblue'>,</span>
+                <span style='color:darkgreen'>cmd</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>native</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>cursor</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>close</span>(<span style='color:deepskyblue'>)</span>
+        <span style='color:darkgreen'>conn</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>close</span>(<span style='color:deepskyblue'>)</span>
+
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>create_stb</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:blueviolet'>for</span> <span style='color:darkgreen'>i</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>range</span>(<span style='color:turquoise'>0</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>numOfStb</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>native</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>cursor</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>execute</span>(
+                <span style='color:crimson'>"CREATE TABLE IF NOT EXISTS %s%d (ts timestamp, value float) TAGS (uuid binary(50))"</span> <span style='color:fuchsia'>%</span>
+                (<span style='color:darkgreen'>stbName</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>i</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>else</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>restful_execute</span>(
+                <span style='color:darkgreen'>host</span><span style='color:deepskyblue'>,</span>
+                <span style='color:darkgreen'>port</span><span style='color:deepskyblue'>,</span>
+                <span style='color:darkgreen'>user</span><span style='color:deepskyblue'>,</span>
+                <span style='color:darkgreen'>password</span><span style='color:deepskyblue'>,</span>
+                <span style='color:crimson'>"CREATE TABLE IF NOT EXISTS %s%d (ts timestamp, value float) TAGS (uuid binary(50))"</span> <span style='color:fuchsia'>%</span>
+                (<span style='color:darkgreen'>stbName</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>i</span><span style='color:deepskyblue'>)</span>
+            <span style='color:deepskyblue'>)</span>
+
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>use_database</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>native</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>cursor</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>execute</span>(<span style='color:crimson'>"USE %s"</span> <span style='color:fuchsia'>%</span> <span style='color:darkgreen'>current_db</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>else</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>restful_execute</span>(<span style='color:darkgreen'>host</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>port</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>user</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>password</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"USE %s"</span> <span style='color:fuchsia'>%</span> <span style='color:darkgreen'>current_db</span><span style='color:deepskyblue'>)</span>
+
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>create_databases</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:blueviolet'>for</span> <span style='color:darkgreen'>i</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>range</span>(<span style='color:turquoise'>0</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>numOfDb</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>v_print</span>(<span style='color:crimson'>"will create database db%d"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>int</span>(<span style='color:darkgreen'>i</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>native</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>cursor</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>execute</span>(
+                <span style='color:crimson'>"CREATE DATABASE IF NOT EXISTS %s%d"</span> <span style='color:fuchsia'>%</span> (<span style='color:darkgreen'>dbName</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>i</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>else</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>restful_execute</span>(
+                <span style='color:darkgreen'>host</span><span style='color:deepskyblue'>,</span>
+                <span style='color:darkgreen'>port</span><span style='color:deepskyblue'>,</span>
+                <span style='color:darkgreen'>user</span><span style='color:deepskyblue'>,</span>
+                <span style='color:darkgreen'>password</span><span style='color:deepskyblue'>,</span>
+                <span style='color:crimson'>"CREATE DATABASE IF NOT EXISTS %s%d"</span> <span style='color:fuchsia'>%</span> (<span style='color:darkgreen'>dbName</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>i</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>drop_tables</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:darkblue'># TODO</span>
+    <span style='color:darkgreen'>v_print</span>(<span style='color:crimson'>"TODO: drop tables total %d"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>numOfTb</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>pass</span>
+
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>drop_stable</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:darkblue'># TODO</span>
+    <span style='color:darkgreen'>v_print</span>(<span style='color:crimson'>"TODO: drop stables total %d"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>numOfStb</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>pass</span>
+
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>drop_databases</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:darkgreen'>v_print</span>(<span style='color:crimson'>"drop databases total %d"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>numOfDb</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkblue'># drop exist databases first</span>
+    <span style='color:blueviolet'>for</span> <span style='color:darkgreen'>i</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>range</span>(<span style='color:turquoise'>0</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>numOfDb</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>v_print</span>(<span style='color:crimson'>"will drop database db%d"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>int</span>(<span style='color:darkgreen'>i</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>native</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>cursor</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>execute</span>(
+                <span style='color:crimson'>"DROP DATABASE IF EXISTS %s%d"</span> <span style='color:fuchsia'>%</span>
+                (<span style='color:darkgreen'>dbName</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>i</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>else</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>restful_execute</span>(
+                <span style='color:darkgreen'>host</span><span style='color:deepskyblue'>,</span>
+                <span style='color:darkgreen'>port</span><span style='color:deepskyblue'>,</span>
+                <span style='color:darkgreen'>user</span><span style='color:deepskyblue'>,</span>
+                <span style='color:darkgreen'>password</span><span style='color:deepskyblue'>,</span>
+                <span style='color:crimson'>"DROP DATABASE IF EXISTS %s%d"</span> <span style='color:fuchsia'>%</span>
+                (<span style='color:darkgreen'>dbName</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>i</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>insert_func</span>(<span style='color:darkgreen'>process</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>int</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>thread</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>int</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:darkgreen'>v_print</span>(<span style='color:crimson'>"%d process %d thread, insert_func "</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>process</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>thread</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkblue'># generate uuid</span>
+    <span style='color:darkgreen'>uuid_int</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>random</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>randint</span>(<span style='color:turquoise'>0</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>numOfTb</span> <span style='color:fuchsia'>+</span> <span style='color:turquoise'>1</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>uuid</span> <span style='color:deepskyblue'>=</span> <span style='color:crimson'>"%s"</span> <span style='color:fuchsia'>%</span> <span style='color:darkgreen'>uuid_int</span>
+    <span style='color:darkgreen'>v_print</span>(<span style='color:crimson'>"uuid is: %s"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>uuid</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkblue'># establish connection if native</span>
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>native</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>v_print</span>(<span style='color:crimson'>"host:%s, user:%s passwd:%s configDir:%s "</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>host</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>user</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>password</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>configDir</span><span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>try</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>conn</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>taos</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>connect</span>(
+                <span style='color:darkgreen'>host</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>host</span><span style='color:deepskyblue'>,</span>
+                <span style='color:darkgreen'>user</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>user</span><span style='color:deepskyblue'>,</span>
+                <span style='color:darkgreen'>password</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>password</span><span style='color:deepskyblue'>,</span>
+                <span style='color:darkgreen'>config</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>configDir</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>v_print</span>(<span style='color:crimson'>"conn: %s"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>str</span>(<span style='color:darkgreen'>conn</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>__class__</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>except</span> <span style='color:darkgreen'>Exception</span> <span style='color:blueviolet'>as</span> <span style='color:darkgreen'>e</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"Error: %s"</span> <span style='color:fuchsia'>%</span> <span style='color:darkgreen'>e</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>args</span><span style='color:deepskyblue'>[</span><span style='color:turquoise'>0</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>sys</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>exit</span>(<span style='color:turquoise'>1</span><span style='color:deepskyblue'>)</span>
+
+        <span style='color:blueviolet'>try</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>cursor</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>conn</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>cursor</span>(<span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>v_print</span>(<span style='color:crimson'>"cursor:%d %s"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>id</span>(<span style='color:darkgreen'>cursor</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>str</span>(<span style='color:darkgreen'>cursor</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>__class__</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>except</span> <span style='color:darkgreen'>Exception</span> <span style='color:blueviolet'>as</span> <span style='color:darkgreen'>e</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"Error: %s"</span> <span style='color:fuchsia'>%</span> <span style='color:darkgreen'>e</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>args</span><span style='color:deepskyblue'>[</span><span style='color:turquoise'>0</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>conn</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>close</span>(<span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>sys</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>exit</span>(<span style='color:turquoise'>1</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkgreen'>v_print</span>(<span style='color:crimson'>"numOfRec %d:"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>numOfRec</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkgreen'>row</span> <span style='color:deepskyblue'>=</span> <span style='color:turquoise'>0</span>
+    <span style='color:blueviolet'>while</span> <span style='color:darkgreen'>row</span> <span style='color:fuchsia'><</span> <span style='color:darkgreen'>numOfRec</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>v_print</span>(<span style='color:crimson'>"row: %d"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>row</span><span style='color:deepskyblue'>)</span>
+        <span style='color:darkgreen'>sqlCmd</span> <span style='color:deepskyblue'>=</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>'INSERT INTO '</span><span style='color:deepskyblue'>]</span>
+        <span style='color:blueviolet'>try</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>sqlCmd</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>append</span>(
+                <span style='color:crimson'>"%s.%s%d "</span> <span style='color:fuchsia'>%</span> (<span style='color:darkgreen'>current_db</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>tbName</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>thread</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+
+            <span style='color:blueviolet'>if</span> (<span style='color:darkgreen'>numOfStb</span> <span style='color:fuchsia'>></span> <span style='color:turquoise'>0</span> <span style='color:blueviolet'>and</span> <span style='color:darkgreen'>autosubtable</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+                <span style='color:darkgreen'>sqlCmd</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>append</span>(<span style='color:crimson'>"USING %s.%s%d TAGS('%s') "</span> <span style='color:fuchsia'>%</span>
+                              (<span style='color:darkgreen'>current_db</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>stbName</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>numOfStb</span> <span style='color:fuchsia'>-</span> <span style='color:turquoise'>1</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>uuid</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+
+            <span style='color:darkgreen'>start_time</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>datetime</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>datetime</span>(
+                <span style='color:turquoise'>2021</span><span style='color:deepskyblue'>,</span> <span style='color:turquoise'>1</span><span style='color:deepskyblue'>,</span> <span style='color:turquoise'>25</span><span style='color:deepskyblue'>)</span> <span style='color:fuchsia'>+</span> <span style='color:darkgreen'>datetime</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>timedelta</span>(<span style='color:darkgreen'>seconds</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>row</span><span style='color:deepskyblue'>)</span>
+
+            <span style='color:darkgreen'>sqlCmd</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>append</span>(<span style='color:crimson'>"VALUES "</span><span style='color:deepskyblue'>)</span>
+            <span style='color:blueviolet'>for</span> <span style='color:darkgreen'>batchIter</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>range</span>(<span style='color:turquoise'>0</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>batch</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+                <span style='color:darkgreen'>sqlCmd</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>append</span>(<span style='color:crimson'>"('%s', %f) "</span> <span style='color:fuchsia'>%</span>
+                              (
+                               <span style='color:darkgreen'>start_time</span> <span style='color:fuchsia'>+</span>
+                                <span style='color:darkgreen'>datetime</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>timedelta</span>(
+                                    <span style='color:darkgreen'>milliseconds</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>batchIter</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span>
+                                  <span style='color:darkgreen'>random</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>random</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+                <span style='color:darkgreen'>row</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>row</span> <span style='color:fuchsia'>+</span> <span style='color:turquoise'>1</span>
+                <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>row</span> <span style='color:deepskyblue'>>=</span> <span style='color:darkgreen'>numOfRec</span><span style='color:deepskyblue'>:</span>
+                    <span style='color:darkgreen'>v_print</span>(<span style='color:crimson'>"BREAK, row: %d numOfRec:%d"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>row</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>numOfRec</span><span style='color:deepskyblue'>)</span>
+                    <span style='color:blueviolet'>break</span>
+
+        <span style='color:blueviolet'>except</span> <span style='color:darkgreen'>Exception</span> <span style='color:blueviolet'>as</span> <span style='color:darkgreen'>e</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"Error: %s"</span> <span style='color:fuchsia'>%</span> <span style='color:darkgreen'>e</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>args</span><span style='color:deepskyblue'>[</span><span style='color:turquoise'>0</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span>
+
+        <span style='color:darkgreen'>cmd</span> <span style='color:deepskyblue'>=</span> <span style='color:crimson'>' '</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>join</span>(<span style='color:darkgreen'>sqlCmd</span><span style='color:deepskyblue'>)</span>
+
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>measure</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>exec_start_time</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>datetime</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>datetime</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>now</span>(<span style='color:deepskyblue'>)</span>
+
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>native</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>affectedRows</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>cursor</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>execute</span>(<span style='color:darkgreen'>cmd</span><span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>else</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>restful_execute</span>(
+                <span style='color:darkgreen'>host</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>port</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>user</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>password</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>cmd</span><span style='color:deepskyblue'>)</span>
+
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>measure</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>exec_end_time</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>datetime</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>datetime</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>now</span>(<span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>exec_delta</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>exec_end_time</span> <span style='color:fuchsia'>-</span> <span style='color:darkgreen'>exec_start_time</span>
+            <span style='color:darkgreen'>v_print</span>(
+                <span style='color:crimson'>"consume %d microseconds"</span><span style='color:deepskyblue'>,</span>
+                 <span style='color:darkgreen'>exec_delta</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>microseconds</span><span style='color:deepskyblue'>)</span>
+
+        <span style='color:darkgreen'>v_print</span>(<span style='color:crimson'>"cmd: %s, length:%d"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>cmd</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>len</span>(<span style='color:darkgreen'>cmd</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>native</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>cursor</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>close</span>(<span style='color:deepskyblue'>)</span>
+        <span style='color:darkgreen'>conn</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>close</span>(<span style='color:deepskyblue'>)</span>
+
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>create_tb_using_stb</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:darkblue'># TODO:</span>
+    <span style='color:blueviolet'>pass</span>
+
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>create_tb</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:darkgreen'>v_print</span>(<span style='color:crimson'>"create_tb() numOfTb: %d"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>numOfTb</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>for</span> <span style='color:darkgreen'>i</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>range</span>(<span style='color:turquoise'>0</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>numOfDb</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>native</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>cursor</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>execute</span>(<span style='color:crimson'>"USE %s%d"</span> <span style='color:fuchsia'>%</span> (<span style='color:darkgreen'>dbName</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>i</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>else</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>restful_execute</span>(
+                <span style='color:darkgreen'>host</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>port</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>user</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>password</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"USE %s%d"</span> <span style='color:fuchsia'>%</span>
+                (<span style='color:darkgreen'>dbName</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>i</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+
+        <span style='color:blueviolet'>for</span> <span style='color:darkgreen'>j</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>range</span>(<span style='color:turquoise'>0</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>numOfTb</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+            <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>native</span><span style='color:deepskyblue'>:</span>
+                <span style='color:darkgreen'>cursor</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>execute</span>(
+                    <span style='color:crimson'>"CREATE TABLE %s%d (ts timestamp, value float)"</span> <span style='color:fuchsia'>%</span>
+                    (<span style='color:darkgreen'>tbName</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>j</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+            <span style='color:blueviolet'>else</span><span style='color:deepskyblue'>:</span>
+                <span style='color:darkgreen'>restful_execute</span>(
+                    <span style='color:darkgreen'>host</span><span style='color:deepskyblue'>,</span>
+                    <span style='color:darkgreen'>port</span><span style='color:deepskyblue'>,</span>
+                    <span style='color:darkgreen'>user</span><span style='color:deepskyblue'>,</span>
+                    <span style='color:darkgreen'>password</span><span style='color:deepskyblue'>,</span>
+                    <span style='color:crimson'>"CREATE TABLE %s%d (ts timestamp, value float)"</span> <span style='color:fuchsia'>%</span>
+                    (<span style='color:darkgreen'>tbName</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>j</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>insert_data_process</span>(<span style='color:darkgreen'>lock</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>i</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>int</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>begin</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>int</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>end</span><span style='color:deepskyblue'>:</span> <span style='color:darkgreen'>int</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:darkgreen'>lock</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>acquire</span>(<span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>tasks</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>end</span> <span style='color:fuchsia'>-</span> <span style='color:darkgreen'>begin</span>
+    <span style='color:darkgreen'>v_print</span>(<span style='color:crimson'>"insert_data_process:%d table from %d to %d, tasks %d"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>i</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>begin</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>end</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>tasks</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:blueviolet'>if</span> (<span style='color:darkgreen'>threads</span> <span style='color:fuchsia'><</span> (<span style='color:darkgreen'>end</span> <span style='color:fuchsia'>-</span> <span style='color:darkgreen'>begin</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:blueviolet'>for</span> <span style='color:darkgreen'>j</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>range</span>(<span style='color:darkgreen'>begin</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>end</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>threads</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+            <span style='color:blueviolet'>with</span> <span style='color:darkgreen'>ThreadPoolExecutor</span>(<span style='color:darkgreen'>max_workers</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>threads</span><span style='color:deepskyblue'>)</span> <span style='color:blueviolet'>as</span> <span style='color:darkgreen'>executor</span><span style='color:deepskyblue'>:</span>
+                <span style='color:darkgreen'>k</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>end</span> <span style='color:blueviolet'>if</span> ((<span style='color:darkgreen'>j</span> <span style='color:fuchsia'>+</span> <span style='color:darkgreen'>threads</span><span style='color:deepskyblue'>)</span> <span style='color:fuchsia'>></span> <span style='color:darkgreen'>end</span><span style='color:deepskyblue'>)</span> <span style='color:blueviolet'>else</span> (<span style='color:darkgreen'>j</span> <span style='color:fuchsia'>+</span> <span style='color:darkgreen'>threads</span><span style='color:deepskyblue'>)</span>
+                <span style='color:darkgreen'>workers</span> <span style='color:deepskyblue'>=</span> <span style='color:deepskyblue'>[</span>
+                    <span style='color:darkgreen'>executor</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>submit</span>(
+                        <span style='color:darkgreen'>insert_func</span><span style='color:deepskyblue'>,</span>
+                        <span style='color:darkgreen'>i</span><span style='color:deepskyblue'>,</span>
+                        <span style='color:darkgreen'>n</span><span style='color:deepskyblue'>)</span> <span style='color:blueviolet'>for</span> <span style='color:darkgreen'>n</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>range</span>(
+                        <span style='color:darkgreen'>j</span><span style='color:deepskyblue'>,</span>
+                        <span style='color:darkgreen'>k</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>]</span>
+                <span style='color:darkgreen'>wait</span>(<span style='color:darkgreen'>workers</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>return_when</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>ALL_COMPLETED</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>else</span><span style='color:deepskyblue'>:</span>
+        <span style='color:blueviolet'>with</span> <span style='color:darkgreen'>ThreadPoolExecutor</span>(<span style='color:darkgreen'>max_workers</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>threads</span><span style='color:deepskyblue'>)</span> <span style='color:blueviolet'>as</span> <span style='color:darkgreen'>executor</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>workers</span> <span style='color:deepskyblue'>=</span> <span style='color:deepskyblue'>[</span>
+                <span style='color:darkgreen'>executor</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>submit</span>(
+                    <span style='color:darkgreen'>insert_func</span><span style='color:deepskyblue'>,</span>
+                    <span style='color:darkgreen'>i</span><span style='color:deepskyblue'>,</span>
+                    <span style='color:darkgreen'>j</span><span style='color:deepskyblue'>)</span> <span style='color:blueviolet'>for</span> <span style='color:darkgreen'>j</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>range</span>(
+                    <span style='color:darkgreen'>begin</span><span style='color:deepskyblue'>,</span>
+                    <span style='color:darkgreen'>end</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>]</span>
+            <span style='color:darkgreen'>wait</span>(<span style='color:darkgreen'>workers</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>return_when</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>ALL_COMPLETED</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkgreen'>lock</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>release</span>(<span style='color:deepskyblue'>)</span>
+
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>query_db</span>(<span style='color:darkgreen'>i</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>native</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>cursor</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>execute</span>(<span style='color:crimson'>"USE %s%d"</span> <span style='color:fuchsia'>%</span> (<span style='color:darkgreen'>dbName</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>i</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>else</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>restful_execute</span>(
+            <span style='color:darkgreen'>host</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>port</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>user</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>password</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"USE %s%d"</span> <span style='color:fuchsia'>%</span>
+            (<span style='color:darkgreen'>dbName</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>i</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:blueviolet'>for</span> <span style='color:darkgreen'>j</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>range</span>(<span style='color:turquoise'>0</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>numOfTb</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>native</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>cursor</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>execute</span>(
+                <span style='color:crimson'>"SELECT COUNT(*) FROM %s%d"</span> <span style='color:fuchsia'>%</span> (<span style='color:darkgreen'>tbName</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>j</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>else</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>restful_execute</span>(
+                <span style='color:darkgreen'>host</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>port</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>user</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>password</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"SELECT COUNT(*) FROM %s%d"</span> <span style='color:fuchsia'>%</span>
+                (<span style='color:darkgreen'>tbName</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>j</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+
+
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>printConfig</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+
+    <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"###################################################################"</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"# Use native interface:              %s"</span> <span style='color:fuchsia'>%</span> <span style='color:darkgreen'>native</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"# Server IP:                         %s"</span> <span style='color:fuchsia'>%</span> <span style='color:darkgreen'>host</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>native</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"# Server port:                       %s"</span> <span style='color:fuchsia'>%</span> <span style='color:darkgreen'>port</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>else</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"# Server port:                       %s"</span> <span style='color:fuchsia'>%</span> <span style='color:darkgreen'>restPort</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"# Configuration Dir:                 %s"</span> <span style='color:fuchsia'>%</span> <span style='color:darkgreen'>configDir</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"# User:                              %s"</span> <span style='color:fuchsia'>%</span> <span style='color:darkgreen'>user</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"# Password:                          %s"</span> <span style='color:fuchsia'>%</span> <span style='color:darkgreen'>password</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"# Number of Columns per record:      %s"</span> <span style='color:fuchsia'>%</span> <span style='color:darkgreen'>colsPerRecord</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"# Number of Threads:                 %s"</span> <span style='color:fuchsia'>%</span> <span style='color:darkgreen'>threads</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"# Number of Processes:               %s"</span> <span style='color:fuchsia'>%</span> <span style='color:darkgreen'>processes</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"# Number of Tables:                  %s"</span> <span style='color:fuchsia'>%</span> <span style='color:darkgreen'>numOfTb</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"# Number of records per Table:       %s"</span> <span style='color:fuchsia'>%</span> <span style='color:darkgreen'>numOfRec</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"# Records/Request:                   %s"</span> <span style='color:fuchsia'>%</span> <span style='color:darkgreen'>batch</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"# Database name:                     %s"</span> <span style='color:fuchsia'>%</span> <span style='color:darkgreen'>dbName</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"# Replica:                           %s"</span> <span style='color:fuchsia'>%</span> <span style='color:darkgreen'>replica</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"# Use STable:                        %s"</span> <span style='color:fuchsia'>%</span> <span style='color:darkgreen'>useStable</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"# Table prefix:                      %s"</span> <span style='color:fuchsia'>%</span> <span style='color:darkgreen'>tbName</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>useStable</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"# STable prefix:                     %s"</span> <span style='color:fuchsia'>%</span> <span style='color:darkgreen'>stbName</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"# Data order:                        %s"</span> <span style='color:fuchsia'>%</span> <span style='color:darkgreen'>outOfOrder</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"# Data out of order rate:            %s"</span> <span style='color:fuchsia'>%</span> <span style='color:darkgreen'>rateOOOO</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"# Delete method:                     %s"</span> <span style='color:fuchsia'>%</span> <span style='color:darkgreen'>deleteMethod</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"# Query command:                     %s"</span> <span style='color:fuchsia'>%</span> <span style='color:darkgreen'>queryCmd</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"# Insert Only:                       %s"</span> <span style='color:fuchsia'>%</span> <span style='color:darkgreen'>insertOnly</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"# Verbose output                     %s"</span> <span style='color:fuchsia'>%</span> <span style='color:darkgreen'>verbose</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"# Test time:                         %s"</span> <span style='color:fuchsia'>%</span>
+          <span style='color:darkgreen'>datetime</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>datetime</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>now</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>strftime</span>(<span style='color:crimson'>"%d/%m/%Y %H:%M:%S"</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"###################################################################"</span><span style='color:deepskyblue'>)</span>
+
+
+<span style='color:blueviolet'>if</span> <span style='color:darkgreen'>__name__</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:crimson'>"__main__"</span><span style='color:deepskyblue'>:</span>
+
+    <span style='color:darkgreen'>native</span> <span style='color:deepskyblue'>=</span> <span style='color:blueviolet'>False</span>
+    <span style='color:darkgreen'>verbose</span> <span style='color:deepskyblue'>=</span> <span style='color:blueviolet'>False</span>
+    <span style='color:darkgreen'>debug</span> <span style='color:deepskyblue'>=</span> <span style='color:blueviolet'>False</span>
+    <span style='color:darkgreen'>measure</span> <span style='color:deepskyblue'>=</span> <span style='color:blueviolet'>True</span>
+    <span style='color:darkgreen'>dropDbOnly</span> <span style='color:deepskyblue'>=</span> <span style='color:blueviolet'>False</span>
+    <span style='color:darkgreen'>colsPerRecord</span> <span style='color:deepskyblue'>=</span> <span style='color:turquoise'>3</span>
+    <span style='color:darkgreen'>numOfDb</span> <span style='color:deepskyblue'>=</span> <span style='color:turquoise'>1</span>
+    <span style='color:darkgreen'>dbName</span> <span style='color:deepskyblue'>=</span> <span style='color:crimson'>"test"</span>
+    <span style='color:darkgreen'>replica</span> <span style='color:deepskyblue'>=</span> <span style='color:turquoise'>1</span>
+    <span style='color:darkgreen'>batch</span> <span style='color:deepskyblue'>=</span> <span style='color:turquoise'>1</span>
+    <span style='color:darkgreen'>numOfTb</span> <span style='color:deepskyblue'>=</span> <span style='color:turquoise'>1</span>
+    <span style='color:darkgreen'>tbName</span> <span style='color:deepskyblue'>=</span> <span style='color:crimson'>"tb"</span>
+    <span style='color:darkgreen'>useStable</span> <span style='color:deepskyblue'>=</span> <span style='color:blueviolet'>False</span>
+    <span style='color:darkgreen'>numOfStb</span> <span style='color:deepskyblue'>=</span> <span style='color:turquoise'>0</span>
+    <span style='color:darkgreen'>stbName</span> <span style='color:deepskyblue'>=</span> <span style='color:crimson'>"stb"</span>
+    <span style='color:darkgreen'>numOfRec</span> <span style='color:deepskyblue'>=</span> <span style='color:turquoise'>10</span>
+    <span style='color:darkgreen'>ieration</span> <span style='color:deepskyblue'>=</span> <span style='color:turquoise'>1</span>
+    <span style='color:darkgreen'>host</span> <span style='color:deepskyblue'>=</span> <span style='color:crimson'>"127.0.0.1"</span>
+    <span style='color:darkgreen'>configDir</span> <span style='color:deepskyblue'>=</span> <span style='color:crimson'>"/etc/taos"</span>
+    <span style='color:darkgreen'>oneMoreHost</span> <span style='color:deepskyblue'>=</span> <span style='color:crimson'>"NotSupported"</span>
+    <span style='color:darkgreen'>port</span> <span style='color:deepskyblue'>=</span> <span style='color:turquoise'>6030</span>
+    <span style='color:darkgreen'>restPort</span> <span style='color:deepskyblue'>=</span> <span style='color:turquoise'>6041</span>
+    <span style='color:darkgreen'>user</span> <span style='color:deepskyblue'>=</span> <span style='color:crimson'>"root"</span>
+    <span style='color:darkgreen'>defaultPass</span> <span style='color:deepskyblue'>=</span> <span style='color:crimson'>"taosdata"</span>
+    <span style='color:darkgreen'>processes</span> <span style='color:deepskyblue'>=</span> <span style='color:turquoise'>1</span>
+    <span style='color:darkgreen'>threads</span> <span style='color:deepskyblue'>=</span> <span style='color:turquoise'>1</span>
+    <span style='color:darkgreen'>insertOnly</span> <span style='color:deepskyblue'>=</span> <span style='color:blueviolet'>False</span>
+    <span style='color:darkgreen'>autosubtable</span> <span style='color:deepskyblue'>=</span> <span style='color:blueviolet'>False</span>
+    <span style='color:darkgreen'>queryCmd</span> <span style='color:deepskyblue'>=</span> <span style='color:crimson'>"NO"</span>
+    <span style='color:darkgreen'>outOfOrder</span> <span style='color:deepskyblue'>=</span> <span style='color:turquoise'>0</span>
+    <span style='color:darkgreen'>rateOOOO</span> <span style='color:deepskyblue'>=</span> <span style='color:turquoise'>0</span>
+    <span style='color:darkgreen'>deleteMethod</span> <span style='color:deepskyblue'>=</span> <span style='color:turquoise'>0</span>
+    <span style='color:darkgreen'>skipPrompt</span> <span style='color:deepskyblue'>=</span> <span style='color:blueviolet'>False</span>
+
+    <span style='color:blueviolet'>try</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>opts</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>args</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>getopt</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>gnu_getopt</span>(<span style='color:darkgreen'>sys</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>argv</span><span style='color:deepskyblue'>[</span><span style='color:turquoise'>1</span><span style='color:deepskyblue'>:</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>,</span>
+                                       <span style='color:crimson'>'Nh:p:u:P:d:a:m:Ms:Q:T:C:r:l:t:n:c:xOR:D:vgyH'</span><span style='color:deepskyblue'>,</span>
+                                       <span style='color:deepskyblue'>[</span>
+            <span style='color:crimson'>'native'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'host'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'port'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'user'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'password'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'dbname'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'replica'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'tbname'</span><span style='color:deepskyblue'>,</span>
+            <span style='color:crimson'>'stable'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'stbname'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'query'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'threads'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'processes'</span><span style='color:deepskyblue'>,</span>
+            <span style='color:crimson'>'recPerReq'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'colsPerRecord'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'numOfTb'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'numOfRec'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'config'</span><span style='color:deepskyblue'>,</span>
+            <span style='color:crimson'>'insertOnly'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'outOfOrder'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'rateOOOO'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'deleteMethod'</span><span style='color:deepskyblue'>,</span>
+            <span style='color:crimson'>'verbose'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'debug'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'skipPrompt'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'help'</span>
+        <span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>except</span> <span style='color:darkgreen'>getopt</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>GetoptError</span> <span style='color:blueviolet'>as</span> <span style='color:darkgreen'>err</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'ERROR:'</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>err</span><span style='color:deepskyblue'>)</span>
+        <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'Try `taosdemo.py --help` for more options.'</span><span style='color:deepskyblue'>)</span>
+        <span style='color:darkgreen'>sys</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>exit</span>(<span style='color:turquoise'>1</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>bool</span>(<span style='color:darkgreen'>opts</span><span style='color:deepskyblue'>)</span> <span style='color:blueviolet'>is</span> <span style='color:blueviolet'>False</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'Try `taosdemo.py --help` for more options.'</span><span style='color:deepskyblue'>)</span>
+        <span style='color:darkgreen'>sys</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>exit</span>(<span style='color:turquoise'>1</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:blueviolet'>for</span> <span style='color:darkgreen'>key</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>value</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>opts</span><span style='color:deepskyblue'>:</span>
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>key</span> <span style='color:blueviolet'>in</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>'-H'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'--help'</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>''</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>print</span>(
+                <span style='color:crimson'>'taosdemo.py for TDengine'</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>''</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'Author: Shuduo Sang <sangshuduo@gmail.com>'</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>''</span><span style='color:deepskyblue'>)</span>
+
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'\t-H, --help                        Show usage.'</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>''</span><span style='color:deepskyblue'>)</span>
+
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'\t-N, --native                      flag, Use native interface if set. Default is using RESTful interface.'</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'\t-h, --host <hostname>             host, The host to connect to TDengine. Default is localhost.'</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'\t-p, --port <port>                 port, The TCP/IP port number to use for the connection. Default is 0.'</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'\t-u, --user <username>             user, The user name to use when connecting to the server. Default is \'root\'.'</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'\t-P, --password <password>         password, The password to use when connecting to the server. Default is \'taosdata\'.'</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'\t-l, --colsPerRec <number>         num_of_columns_per_record, The number of columns per record. Default is 3.'</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>print</span>(
+                  <span style='color:crimson'>'\t-d, --dbname <dbname>             database, Destination database. Default is \'test\'.'</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'\t-a, --replica <replications>      replica, Set the replica parameters of the database, Default 1, min: 1, max: 5.'</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>print</span>(
+                  <span style='color:crimson'>'\t-m, --tbname <table prefix>       table_prefix, Table prefix name. Default is \'t\'.'</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>print</span>(
+                  <span style='color:crimson'>'\t-M, --stable                      flag, Use super table. Default is no'</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>print</span>(
+                  <span style='color:crimson'>'\t-s, --stbname <stable prefix>     stable_prefix, STable prefix name. Default is \'st\''</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'\t-Q, --query [NO|EACHTB|command]   query, Execute query command. set \'EACHTB\' means select * from each table'</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>print</span>(
+                  <span style='color:crimson'>'\t-T, --threads <number>            num_of_threads, The number of threads. Default is 1.'</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>print</span>(
+                  <span style='color:crimson'>'\t-C, --processes <number>          num_of_processes, The number of threads. Default is 1.'</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'\t-r, --batch <number>              num_of_records_per_req, The number of records per request. Default is 1000.'</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>print</span>(
+                  <span style='color:crimson'>'\t-t, --numOfTb <number>            num_of_tables, The number of tables. Default is 1.'</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'\t-n, --numOfRec <number>           num_of_records_per_table, The number of records per table. Default is 1.'</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'\t-c, --config <path>               config_directory, Configuration directory. Default is \'/etc/taos/\'.'</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'\t-x, --inserOnly                   flag, Insert only flag.'</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'\t-O, --outOfOrder                  out of order data insert, 0: In order, 1: Out of order. Default is in order.'</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'\t-R, --rateOOOO <number>           rate, Out of order data\'s rate--if order=1 Default 10, min: 0, max: 50.'</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'\t-D, --deleteMethod <number>       Delete data methods 0: don\'t delete, 1: delete by table, 2: delete by stable, 3: delete by database.'</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'\t-v, --verbose                     Print verbose output'</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>'\t-g, --debug                       Print debug output'</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>print</span>(
+                  <span style='color:crimson'>'\t-y, --skipPrompt                  Skip read key for continous test, default is not skip'</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>''</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>sys</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>exit</span>(<span style='color:turquoise'>0</span><span style='color:deepskyblue'>)</span>
+
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>key</span> <span style='color:blueviolet'>in</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>'-N'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'--native'</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>:</span>
+            <span style='color:blueviolet'>try</span><span style='color:deepskyblue'>:</span>
+                <span style='color:blueviolet'>import</span> <span style='color:darkgreen'>taos</span>
+            <span style='color:blueviolet'>except</span> <span style='color:darkgreen'>Exception</span> <span style='color:blueviolet'>as</span> <span style='color:darkgreen'>e</span><span style='color:deepskyblue'>:</span>
+                <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"Error: %s"</span> <span style='color:fuchsia'>%</span> <span style='color:darkgreen'>e</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>args</span><span style='color:deepskyblue'>[</span><span style='color:turquoise'>0</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span>
+                <span style='color:darkgreen'>sys</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>exit</span>(<span style='color:turquoise'>1</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>native</span> <span style='color:deepskyblue'>=</span> <span style='color:blueviolet'>True</span>
+
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>key</span> <span style='color:blueviolet'>in</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>'-h'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'--host'</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>host</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>value</span>
+
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>key</span> <span style='color:blueviolet'>in</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>'-p'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'--port'</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>port</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>int</span>(<span style='color:darkgreen'>value</span><span style='color:deepskyblue'>)</span>
+
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>key</span> <span style='color:blueviolet'>in</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>'-u'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'--user'</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>user</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>value</span>
+
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>key</span> <span style='color:blueviolet'>in</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>'-P'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'--password'</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>password</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>value</span>
+        <span style='color:blueviolet'>else</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>password</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>defaultPass</span>
+
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>key</span> <span style='color:blueviolet'>in</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>'-d'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'--dbname'</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>dbName</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>value</span>
+
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>key</span> <span style='color:blueviolet'>in</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>'-a'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'--replica'</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>replica</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>int</span>(<span style='color:darkgreen'>value</span><span style='color:deepskyblue'>)</span>
+            <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>replica</span> <span style='color:fuchsia'><</span> <span style='color:turquoise'>1</span><span style='color:deepskyblue'>:</span>
+                <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"FATAL: number of replica need > 0"</span><span style='color:deepskyblue'>)</span>
+                <span style='color:darkgreen'>sys</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>exit</span>(<span style='color:turquoise'>1</span><span style='color:deepskyblue'>)</span>
+
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>key</span> <span style='color:blueviolet'>in</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>'-m'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'--tbname'</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>tbName</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>value</span>
+
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>key</span> <span style='color:blueviolet'>in</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>'-M'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'--stable'</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>useStable</span> <span style='color:deepskyblue'>=</span> <span style='color:blueviolet'>True</span>
+            <span style='color:darkgreen'>numOfStb</span> <span style='color:deepskyblue'>=</span> <span style='color:turquoise'>1</span>
+
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>key</span> <span style='color:blueviolet'>in</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>'-s'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'--stbname'</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>stbName</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>value</span>
+
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>key</span> <span style='color:blueviolet'>in</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>'-Q'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'--query'</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>queryCmd</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>str</span>(<span style='color:darkgreen'>value</span><span style='color:deepskyblue'>)</span>
+
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>key</span> <span style='color:blueviolet'>in</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>'-T'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'--threads'</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>threads</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>int</span>(<span style='color:darkgreen'>value</span><span style='color:deepskyblue'>)</span>
+            <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>threads</span> <span style='color:fuchsia'><</span> <span style='color:turquoise'>1</span><span style='color:deepskyblue'>:</span>
+                <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"FATAL: number of threads must be larger than 0"</span><span style='color:deepskyblue'>)</span>
+                <span style='color:darkgreen'>sys</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>exit</span>(<span style='color:turquoise'>1</span><span style='color:deepskyblue'>)</span>
+
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>key</span> <span style='color:blueviolet'>in</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>'-C'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'--processes'</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>processes</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>int</span>(<span style='color:darkgreen'>value</span><span style='color:deepskyblue'>)</span>
+            <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>processes</span> <span style='color:fuchsia'><</span> <span style='color:turquoise'>1</span><span style='color:deepskyblue'>:</span>
+                <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"FATAL: number of processes must be larger than 0"</span><span style='color:deepskyblue'>)</span>
+                <span style='color:darkgreen'>sys</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>exit</span>(<span style='color:turquoise'>1</span><span style='color:deepskyblue'>)</span>
+
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>key</span> <span style='color:blueviolet'>in</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>'-r'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'--batch'</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>batch</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>int</span>(<span style='color:darkgreen'>value</span><span style='color:deepskyblue'>)</span>
+
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>key</span> <span style='color:blueviolet'>in</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>'-l'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'--colsPerRec'</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>colsPerRec</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>int</span>(<span style='color:darkgreen'>value</span><span style='color:deepskyblue'>)</span>
+
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>key</span> <span style='color:blueviolet'>in</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>'-t'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'--numOfTb'</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>numOfTb</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>int</span>(<span style='color:darkgreen'>value</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>v_print</span>(<span style='color:crimson'>"numOfTb is %d"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>numOfTb</span><span style='color:deepskyblue'>)</span>
+
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>key</span> <span style='color:blueviolet'>in</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>'-n'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'--numOfRec'</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>numOfRec</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>int</span>(<span style='color:darkgreen'>value</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>v_print</span>(<span style='color:crimson'>"numOfRec is %d"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>numOfRec</span><span style='color:deepskyblue'>)</span>
+            <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>numOfRec</span> <span style='color:fuchsia'><</span> <span style='color:turquoise'>1</span><span style='color:deepskyblue'>:</span>
+                <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"FATAL: number of records must be larger than 0"</span><span style='color:deepskyblue'>)</span>
+                <span style='color:darkgreen'>sys</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>exit</span>(<span style='color:turquoise'>1</span><span style='color:deepskyblue'>)</span>
+
+
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>key</span> <span style='color:blueviolet'>in</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>'-c'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'--config'</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>configDir</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>value</span>
+            <span style='color:darkgreen'>v_print</span>(<span style='color:crimson'>"config dir: %s"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>configDir</span><span style='color:deepskyblue'>)</span>
+
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>key</span> <span style='color:blueviolet'>in</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>'-x'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'--insertOnly'</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>insertOnly</span> <span style='color:deepskyblue'>=</span> <span style='color:blueviolet'>True</span>
+            <span style='color:darkgreen'>v_print</span>(<span style='color:crimson'>"insert only: %d"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>insertOnly</span><span style='color:deepskyblue'>)</span>
+
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>key</span> <span style='color:blueviolet'>in</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>'-O'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'--outOfOrder'</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>outOfOrder</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>int</span>(<span style='color:darkgreen'>value</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>v_print</span>(<span style='color:crimson'>"out of order is %d"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>outOfOrder</span><span style='color:deepskyblue'>)</span>
+
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>key</span> <span style='color:blueviolet'>in</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>'-R'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'--rateOOOO'</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>rateOOOO</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>int</span>(<span style='color:darkgreen'>value</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>v_print</span>(<span style='color:crimson'>"the rate of out of order is %d"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>rateOOOO</span><span style='color:deepskyblue'>)</span>
+
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>key</span> <span style='color:blueviolet'>in</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>'-D'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'--deleteMethod'</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>deleteMethod</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>int</span>(<span style='color:darkgreen'>value</span><span style='color:deepskyblue'>)</span>
+            <span style='color:blueviolet'>if</span> (<span style='color:darkgreen'>deleteMethod</span> <span style='color:fuchsia'><</span> <span style='color:turquoise'>0</span><span style='color:deepskyblue'>)</span> <span style='color:blueviolet'>or</span> (<span style='color:darkgreen'>deleteMethod</span> <span style='color:fuchsia'>></span> <span style='color:turquoise'>3</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+                <span style='color:darkgreen'>print</span>(
+                    <span style='color:crimson'>"inputed delete method is %d, valid value is 0~3, set to default 0"</span> <span style='color:fuchsia'>%</span>
+                    <span style='color:darkgreen'>deleteMethod</span><span style='color:deepskyblue'>)</span>
+                <span style='color:darkgreen'>deleteMethod</span> <span style='color:deepskyblue'>=</span> <span style='color:turquoise'>0</span>
+            <span style='color:darkgreen'>v_print</span>(<span style='color:crimson'>"the delete method is %d"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>deleteMethod</span><span style='color:deepskyblue'>)</span>
+
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>key</span> <span style='color:blueviolet'>in</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>'-v'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'--verbose'</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>verbose</span> <span style='color:deepskyblue'>=</span> <span style='color:blueviolet'>True</span>
+
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>key</span> <span style='color:blueviolet'>in</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>'-g'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'--debug'</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>debug</span> <span style='color:deepskyblue'>=</span> <span style='color:blueviolet'>True</span>
+
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>key</span> <span style='color:blueviolet'>in</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>'-y'</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>'--skipPrompt'</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>skipPrompt</span> <span style='color:deepskyblue'>=</span> <span style='color:blueviolet'>True</span>
+
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>verbose</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>printConfig</span>(<span style='color:deepskyblue'>)</span>
+
+    <span style='color:blueviolet'>if</span> <span style='color:blueviolet'>not</span> <span style='color:darkgreen'>skipPrompt</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>input</span>(<span style='color:crimson'>"Press any key to continue.."</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkblue'># establish connection first if native</span>
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>native</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>v_print</span>(<span style='color:crimson'>"host:%s, user:%s passwd:%s configDir:%s "</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>host</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>user</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>password</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>configDir</span><span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>try</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>conn</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>taos</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>connect</span>(
+                <span style='color:darkgreen'>host</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>host</span><span style='color:deepskyblue'>,</span>
+                <span style='color:darkgreen'>user</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>user</span><span style='color:deepskyblue'>,</span>
+                <span style='color:darkgreen'>password</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>password</span><span style='color:deepskyblue'>,</span>
+                <span style='color:darkgreen'>config</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>configDir</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>v_print</span>(<span style='color:crimson'>"conn: %s"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>str</span>(<span style='color:darkgreen'>conn</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>__class__</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>except</span> <span style='color:darkgreen'>Exception</span> <span style='color:blueviolet'>as</span> <span style='color:darkgreen'>e</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"Error: %s"</span> <span style='color:fuchsia'>%</span> <span style='color:darkgreen'>e</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>args</span><span style='color:deepskyblue'>[</span><span style='color:turquoise'>0</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>sys</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>exit</span>(<span style='color:turquoise'>1</span><span style='color:deepskyblue'>)</span>
+
+        <span style='color:blueviolet'>try</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>cursor</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>conn</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>cursor</span>(<span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>v_print</span>(<span style='color:crimson'>"cursor:%d %s"</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>id</span>(<span style='color:darkgreen'>cursor</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>str</span>(<span style='color:darkgreen'>cursor</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>__class__</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>except</span> <span style='color:darkgreen'>Exception</span> <span style='color:blueviolet'>as</span> <span style='color:darkgreen'>e</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"Error: %s"</span> <span style='color:fuchsia'>%</span> <span style='color:darkgreen'>e</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>args</span><span style='color:deepskyblue'>[</span><span style='color:turquoise'>0</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>conn</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>close</span>(<span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>sys</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>exit</span>(<span style='color:turquoise'>1</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkblue'># drop data only if delete method be set</span>
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>deleteMethod</span> <span style='color:fuchsia'>></span> <span style='color:turquoise'>0</span><span style='color:deepskyblue'>:</span>
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>deleteMethod</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:turquoise'>1</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>drop_tables</span>(<span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"Drop tables done."</span><span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>elif</span> <span style='color:darkgreen'>deleteMethod</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:turquoise'>2</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>drop_stables</span>(<span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"Drop super tables done."</span><span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>elif</span> <span style='color:darkgreen'>deleteMethod</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:turquoise'>3</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>drop_databases</span>(<span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"Drop Database done."</span><span style='color:deepskyblue'>)</span>
+        <span style='color:darkgreen'>sys</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>exit</span>(<span style='color:turquoise'>0</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkblue'># create databases</span>
+    <span style='color:darkgreen'>drop_databases</span>(<span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>create_databases</span>(<span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkblue'># use last database</span>
+    <span style='color:darkgreen'>current_db</span> <span style='color:deepskyblue'>=</span> <span style='color:crimson'>"%s%d"</span> <span style='color:fuchsia'>%</span> (<span style='color:darkgreen'>dbName</span><span style='color:deepskyblue'>,</span> (<span style='color:darkgreen'>numOfDb</span> <span style='color:fuchsia'>-</span> <span style='color:turquoise'>1</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>use_database</span>(<span style='color:deepskyblue'>)</span>
+
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>measure</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>start_time_begin</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>time</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>time</span>(<span style='color:deepskyblue'>)</span>
+
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>numOfStb</span> <span style='color:fuchsia'>></span> <span style='color:turquoise'>0</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>create_stb</span>(<span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>if</span> (<span style='color:darkgreen'>autosubtable</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:blueviolet'>False</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>create_tb_using_stb</span>(<span style='color:deepskyblue'>)</span>
+    <span style='color:blueviolet'>else</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>create_tb</span>(<span style='color:deepskyblue'>)</span>
+
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>measure</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>end_time</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>time</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>time</span>(<span style='color:deepskyblue'>)</span>
+        <span style='color:darkgreen'>print</span>(
+            <span style='color:crimson'>"Total time consumed {} seconds for create table."</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>format</span>(
+            (<span style='color:darkgreen'>end_time</span> <span style='color:fuchsia'>-</span> <span style='color:darkgreen'>start_time_begin</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>native</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>cursor</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>close</span>(<span style='color:deepskyblue'>)</span>
+        <span style='color:darkgreen'>conn</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>close</span>(<span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkblue'># start insert data</span>
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>measure</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>start_time</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>time</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>time</span>(<span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkgreen'>manager</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>Manager</span>(<span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>lock</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>manager</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>Lock</span>(<span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>pool</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>Pool</span>(<span style='color:darkgreen'>processes</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkgreen'>begin</span> <span style='color:deepskyblue'>=</span> <span style='color:turquoise'>0</span>
+    <span style='color:darkgreen'>end</span> <span style='color:deepskyblue'>=</span> <span style='color:turquoise'>0</span>
+
+    <span style='color:darkgreen'>quotient</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>numOfTb</span> <span style='color:fuchsia'>//</span> <span style='color:darkgreen'>processes</span>
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>quotient</span> <span style='color:fuchsia'><</span> <span style='color:turquoise'>1</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>processes</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>numOfTb</span>
+        <span style='color:darkgreen'>quotient</span> <span style='color:deepskyblue'>=</span> <span style='color:turquoise'>1</span>
+
+    <span style='color:darkgreen'>remainder</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>numOfTb</span> <span style='color:fuchsia'>%</span> <span style='color:darkgreen'>processes</span>
+    <span style='color:darkgreen'>v_print</span>(
+        <span style='color:crimson'>"num of tables: %d, quotient: %d, remainder: %d"</span><span style='color:deepskyblue'>,</span>
+        <span style='color:darkgreen'>numOfTb</span><span style='color:deepskyblue'>,</span>
+        <span style='color:darkgreen'>quotient</span><span style='color:deepskyblue'>,</span>
+        <span style='color:darkgreen'>remainder</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:blueviolet'>for</span> <span style='color:darkgreen'>i</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>range</span>(<span style='color:darkgreen'>processes</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>begin</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>end</span>
+
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>i</span> <span style='color:fuchsia'><</span> <span style='color:darkgreen'>remainder</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>end</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>begin</span> <span style='color:fuchsia'>+</span> <span style='color:darkgreen'>quotient</span> <span style='color:fuchsia'>+</span> <span style='color:turquoise'>1</span>
+        <span style='color:blueviolet'>else</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>end</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>begin</span> <span style='color:fuchsia'>+</span> <span style='color:darkgreen'>quotient</span>
+        <span style='color:darkgreen'>pool</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>apply_async</span>(<span style='color:darkgreen'>insert_data_process</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>args</span><span style='color:deepskyblue'>=</span>(<span style='color:darkgreen'>lock</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>i</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>begin</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>end</span><span style='color:deepskyblue'>,</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkgreen'>pool</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>close</span>(<span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>pool</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>join</span>(<span style='color:deepskyblue'>)</span>
+    <span style='color:darkgreen'>time</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>sleep</span>(<span style='color:turquoise'>1</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>measure</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>end_time</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>time</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>time</span>(<span style='color:deepskyblue'>)</span>
+        <span style='color:darkgreen'>print</span>(
+            <span style='color:crimson'>"Total time consumed {} seconds for insert data."</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>format</span>(
+            (<span style='color:darkgreen'>end_time</span> <span style='color:fuchsia'>-</span> <span style='color:darkgreen'>start_time</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+
+
+    <span style='color:darkblue'># query data</span>
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>queryCmd</span> <span style='color:fuchsia'>!=</span> <span style='color:crimson'>"NO"</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"queryCmd: %s"</span> <span style='color:fuchsia'>%</span> <span style='color:darkgreen'>queryCmd</span><span style='color:deepskyblue'>)</span>
+        <span style='color:darkgreen'>query_data_process</span>(<span style='color:darkgreen'>queryCmd</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>measure</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>end_time</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>time</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>time</span>(<span style='color:deepskyblue'>)</span>
+        <span style='color:darkgreen'>print</span>(
+            <span style='color:crimson'>"Total time consumed {} seconds."</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>format</span>(
+                (<span style='color:darkgreen'>end_time</span> <span style='color:fuchsia'>-</span> <span style='color:darkgreen'>start_time_begin</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:darkgreen'>print</span>(<span style='color:crimson'>"done"</span><span style='color:deepskyblue'>)</span>
+        </pre>
+    </body>
+</html>

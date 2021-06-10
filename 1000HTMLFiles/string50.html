@@ -1,0 +1,285 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="categorical-styles.css">
+        <title>Documento de python resaltado</title>
+    </head>
+    <body>
+        <pre><span style='color:crimson'>"""A collection of string constants.
+Public module variables:
+whitespace -- a string containing all ASCII whitespace
+ascii_lowercase -- a string containing all ASCII lowercase letters
+ascii_uppercase -- a string containing all ASCII uppercase letters
+ascii_letters -- a string containing all ASCII letters
+digits -- a string containing all ASCII decimal digits
+hexdigits -- a string containing all ASCII hexadecimal digits
+octdigits -- a string containing all ASCII octal digits
+punctuation -- a string containing all ASCII punctuation characters
+printable -- a string containing all ASCII characters considered printable
+"""</span>
+
+<span style='color:darkgreen'>__all__</span> <span style='color:deepskyblue'>=</span> <span style='color:deepskyblue'>[</span><span style='color:crimson'>"ascii_letters"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"ascii_lowercase"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"ascii_uppercase"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"capwords"</span><span style='color:deepskyblue'>,</span>
+           <span style='color:crimson'>"digits"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"hexdigits"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"octdigits"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"printable"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"punctuation"</span><span style='color:deepskyblue'>,</span>
+           <span style='color:crimson'>"whitespace"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"Formatter"</span><span style='color:deepskyblue'>,</span> <span style='color:crimson'>"Template"</span><span style='color:deepskyblue'>]</span>
+
+<span style='color:blueviolet'>import</span> <span style='color:darkgreen'>_string</span>
+
+<span style='color:darkblue'># Some strings for ctype-style character classification</span>
+<span style='color:darkgreen'>whitespace</span> <span style='color:deepskyblue'>=</span> <span style='color:crimson'>' \t\n\r\v\f'</span>
+<span style='color:darkgreen'>ascii_lowercase</span> <span style='color:deepskyblue'>=</span> <span style='color:crimson'>'abcdefghijklmnopqrstuvwxyz'</span>
+<span style='color:darkgreen'>ascii_uppercase</span> <span style='color:deepskyblue'>=</span> <span style='color:crimson'>'ABCDEFGHIJKLMNOPQRSTUVWXYZ'</span>
+<span style='color:darkgreen'>ascii_letters</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>ascii_lowercase</span> <span style='color:fuchsia'>+</span> <span style='color:darkgreen'>ascii_uppercase</span>
+<span style='color:darkgreen'>digits</span> <span style='color:deepskyblue'>=</span> <span style='color:crimson'>'0123456789'</span>
+<span style='color:darkgreen'>hexdigits</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>digits</span> <span style='color:fuchsia'>+</span> <span style='color:crimson'>'abcdef'</span> <span style='color:fuchsia'>+</span> <span style='color:crimson'>'ABCDEF'</span>
+<span style='color:darkgreen'>octdigits</span> <span style='color:deepskyblue'>=</span> <span style='color:crimson'>'01234567'</span>
+<span style='color:darkgreen'>punctuation</span> <span style='color:deepskyblue'>=</span> <span style='color:crimson'>r""</span><span style='color:crimson'>"!"</span><span style='color:darkblue'>#$%&'()*+,-./:;<=>?@[\]^_`{|}~"""</span>
+<span style='color:darkgreen'>printable</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>digits</span> <span style='color:fuchsia'>+</span> <span style='color:darkgreen'>ascii_letters</span> <span style='color:fuchsia'>+</span> <span style='color:darkgreen'>punctuation</span> <span style='color:fuchsia'>+</span> <span style='color:darkgreen'>whitespace</span>
+
+<span style='color:darkblue'># Functions which aren't available as string methods.</span>
+
+<span style='color:darkblue'># Capitalize the words in a string, e.g. " aBc  dEf " -> "Abc Def".</span>
+<span style='color:blueviolet'>def</span> <span style='color:darkgreen'>capwords</span>(<span style='color:darkgreen'>s</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>sep</span><span style='color:deepskyblue'>=</span><span style='color:blueviolet'>None</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+    <span style='color:crimson'>"""capwords(s [,sep]) -> string
+    Split the argument into words using split, capitalize each
+    word using capitalize, and join the capitalized words using
+    join.  If the optional second argument sep is absent or None,
+    runs of whitespace characters are replaced by a single space
+    and leading and trailing whitespace are removed, otherwise
+    sep is used to split and join the words.
+    """</span>
+    <span style='color:blueviolet'>return</span> (<span style='color:darkgreen'>sep</span> <span style='color:blueviolet'>or</span> <span style='color:crimson'>' '</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>join</span>(<span style='color:darkgreen'>x</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>capitalize</span>(<span style='color:deepskyblue'>)</span> <span style='color:blueviolet'>for</span> <span style='color:darkgreen'>x</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>s</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>split</span>(<span style='color:darkgreen'>sep</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+
+
+<span style='color:darkblue'>####################################################################</span>
+<span style='color:blueviolet'>import</span> <span style='color:darkgreen'>re</span> <span style='color:blueviolet'>as</span> <span style='color:darkgreen'>_re</span>
+<span style='color:blueviolet'>from</span> <span style='color:darkgreen'>collections</span> <span style='color:blueviolet'>import</span> <span style='color:darkgreen'>ChainMap</span> <span style='color:blueviolet'>as</span> <span style='color:darkgreen'>_ChainMap</span>
+
+<span style='color:darkgreen'>_sentinel_dict</span> <span style='color:deepskyblue'>=</span> <span style='color:deepskyblue'>{</span><span style='color:deepskyblue'>}</span>
+
+<span style='color:blueviolet'>class</span> <span style='color:darkgreen'>Template</span><span style='color:deepskyblue'>:</span>
+    <span style='color:crimson'>"""A string class for supporting $-substitutions."""</span>
+
+    <span style='color:darkgreen'>delimiter</span> <span style='color:deepskyblue'>=</span> <span style='color:crimson'>'$'</span>
+    <span style='color:darkblue'># r'[a-z]' matches to non-ASCII letters when used with IGNORECASE, but</span>
+    <span style='color:darkblue'># without the ASCII flag.  We can't add re.ASCII to flags because of</span>
+    <span style='color:darkblue'># backward compatibility.  So we use the ?a local flag and [a-z] pattern.</span>
+    <span style='color:darkblue'># See https://bugs.python.org/issue31672</span>
+    <span style='color:darkgreen'>idpattern</span> <span style='color:deepskyblue'>=</span> <span style='color:crimson'>r'(?a:[_a-z][_a-z0-9]*)'</span>
+    <span style='color:darkgreen'>braceidpattern</span> <span style='color:deepskyblue'>=</span> <span style='color:blueviolet'>None</span>
+    <span style='color:darkgreen'>flags</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>_re</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>IGNORECASE</span>
+
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>__init_subclass__</span>(<span style='color:darkgreen'>cls</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>super</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>__init_subclass__</span>(<span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>if</span> <span style='color:crimson'>'pattern'</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>cls</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>__dict__</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>pattern</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>cls</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>pattern</span>
+        <span style='color:blueviolet'>else</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>delim</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>_re</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>escape</span>(<span style='color:darkgreen'>cls</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>delimiter</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>id</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>cls</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>idpattern</span>
+            <span style='color:darkgreen'>bid</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>cls</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>braceidpattern</span> <span style='color:blueviolet'>or</span> <span style='color:darkgreen'>cls</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>idpattern</span>
+            <span style='color:darkgreen'>pattern</span> <span style='color:deepskyblue'>=</span> <span style='color:crimson'>fr"""
+            {delim}(?:
+              (?P<escaped>{delim})  |   # Escape sequence of two delimiters
+              (?P<named>{id})       |   # delimiter and a Python identifier
+              {{(?P<braced>{bid})}} |   # delimiter and a braced identifier
+              (?P<invalid>)             # Other ill-formed delimiter exprs
+            )
+            """</span>
+        <span style='color:darkgreen'>cls</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>pattern</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>_re</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>compile</span>(<span style='color:darkgreen'>pattern</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>cls</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>flags</span> <span style='color:fuchsia'>|</span> <span style='color:darkgreen'>_re</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>VERBOSE</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>__init__</span>(<span style='color:darkgreen'>self</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>template</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>self</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>template</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>template</span>
+
+    <span style='color:darkblue'># Search for $$, $identifier, ${identifier}, and any bare $'s</span>
+
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>_invalid</span>(<span style='color:darkgreen'>self</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>mo</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>i</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>mo</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>start</span>(<span style='color:crimson'>'invalid'</span><span style='color:deepskyblue'>)</span>
+        <span style='color:darkgreen'>lines</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>self</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>template</span><span style='color:deepskyblue'>[</span><span style='color:deepskyblue'>:</span><span style='color:darkgreen'>i</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>splitlines</span>(<span style='color:darkgreen'>keepends</span><span style='color:deepskyblue'>=</span><span style='color:blueviolet'>True</span><span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>if</span> <span style='color:blueviolet'>not</span> <span style='color:darkgreen'>lines</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>colno</span> <span style='color:deepskyblue'>=</span> <span style='color:turquoise'>1</span>
+            <span style='color:darkgreen'>lineno</span> <span style='color:deepskyblue'>=</span> <span style='color:turquoise'>1</span>
+        <span style='color:blueviolet'>else</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>colno</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>i</span> <span style='color:fuchsia'>-</span> <span style='color:darkgreen'>len</span>(<span style='color:crimson'>''</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>join</span>(<span style='color:darkgreen'>lines</span><span style='color:deepskyblue'>[</span><span style='color:deepskyblue'>:</span><span style='color:fuchsia'>-</span><span style='color:turquoise'>1</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+            <span style='color:darkgreen'>lineno</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>len</span>(<span style='color:darkgreen'>lines</span><span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>raise</span> <span style='color:darkgreen'>ValueError</span>(<span style='color:crimson'>'Invalid placeholder in string: line %d, col %d'</span> <span style='color:fuchsia'>%</span>
+                         (<span style='color:darkgreen'>lineno</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>colno</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>substitute</span>(<span style='color:darkgreen'>self</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>mapping</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>_sentinel_dict</span><span style='color:deepskyblue'>,</span> <span style='color:fuchsia'>/</span><span style='color:deepskyblue'>,</span> <span style='color:fuchsia'>**</span><span style='color:darkgreen'>kws</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>mapping</span> <span style='color:blueviolet'>is</span> <span style='color:darkgreen'>_sentinel_dict</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>mapping</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>kws</span>
+        <span style='color:blueviolet'>elif</span> <span style='color:darkgreen'>kws</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>mapping</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>_ChainMap</span>(<span style='color:darkgreen'>kws</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>mapping</span><span style='color:deepskyblue'>)</span>
+        <span style='color:darkblue'># Helper function for .sub()</span>
+        <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>convert</span>(<span style='color:darkgreen'>mo</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkblue'># Check the most common path first.</span>
+            <span style='color:darkgreen'>named</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>mo</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>group</span>(<span style='color:crimson'>'named'</span><span style='color:deepskyblue'>)</span> <span style='color:blueviolet'>or</span> <span style='color:darkgreen'>mo</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>group</span>(<span style='color:crimson'>'braced'</span><span style='color:deepskyblue'>)</span>
+            <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>named</span> <span style='color:blueviolet'>is</span> <span style='color:blueviolet'>not</span> <span style='color:blueviolet'>None</span><span style='color:deepskyblue'>:</span>
+                <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>str</span>(<span style='color:darkgreen'>mapping</span><span style='color:deepskyblue'>[</span><span style='color:darkgreen'>named</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span>
+            <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>mo</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>group</span>(<span style='color:crimson'>'escaped'</span><span style='color:deepskyblue'>)</span> <span style='color:blueviolet'>is</span> <span style='color:blueviolet'>not</span> <span style='color:blueviolet'>None</span><span style='color:deepskyblue'>:</span>
+                <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>self</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>delimiter</span>
+            <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>mo</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>group</span>(<span style='color:crimson'>'invalid'</span><span style='color:deepskyblue'>)</span> <span style='color:blueviolet'>is</span> <span style='color:blueviolet'>not</span> <span style='color:blueviolet'>None</span><span style='color:deepskyblue'>:</span>
+                <span style='color:darkgreen'>self</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>_invalid</span>(<span style='color:darkgreen'>mo</span><span style='color:deepskyblue'>)</span>
+            <span style='color:blueviolet'>raise</span> <span style='color:darkgreen'>ValueError</span>(<span style='color:crimson'>'Unrecognized named group in pattern'</span><span style='color:deepskyblue'>,</span>
+                             <span style='color:darkgreen'>self</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>pattern</span><span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>self</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>pattern</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>sub</span>(<span style='color:darkgreen'>convert</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>self</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>template</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>safe_substitute</span>(<span style='color:darkgreen'>self</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>mapping</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>_sentinel_dict</span><span style='color:deepskyblue'>,</span> <span style='color:fuchsia'>/</span><span style='color:deepskyblue'>,</span> <span style='color:fuchsia'>**</span><span style='color:darkgreen'>kws</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>mapping</span> <span style='color:blueviolet'>is</span> <span style='color:darkgreen'>_sentinel_dict</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>mapping</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>kws</span>
+        <span style='color:blueviolet'>elif</span> <span style='color:darkgreen'>kws</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>mapping</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>_ChainMap</span>(<span style='color:darkgreen'>kws</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>mapping</span><span style='color:deepskyblue'>)</span>
+        <span style='color:darkblue'># Helper function for .sub()</span>
+        <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>convert</span>(<span style='color:darkgreen'>mo</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+            <span style='color:darkgreen'>named</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>mo</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>group</span>(<span style='color:crimson'>'named'</span><span style='color:deepskyblue'>)</span> <span style='color:blueviolet'>or</span> <span style='color:darkgreen'>mo</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>group</span>(<span style='color:crimson'>'braced'</span><span style='color:deepskyblue'>)</span>
+            <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>named</span> <span style='color:blueviolet'>is</span> <span style='color:blueviolet'>not</span> <span style='color:blueviolet'>None</span><span style='color:deepskyblue'>:</span>
+                <span style='color:blueviolet'>try</span><span style='color:deepskyblue'>:</span>
+                    <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>str</span>(<span style='color:darkgreen'>mapping</span><span style='color:deepskyblue'>[</span><span style='color:darkgreen'>named</span><span style='color:deepskyblue'>]</span><span style='color:deepskyblue'>)</span>
+                <span style='color:blueviolet'>except</span> <span style='color:darkgreen'>KeyError</span><span style='color:deepskyblue'>:</span>
+                    <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>mo</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>group</span>(<span style='color:deepskyblue'>)</span>
+            <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>mo</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>group</span>(<span style='color:crimson'>'escaped'</span><span style='color:deepskyblue'>)</span> <span style='color:blueviolet'>is</span> <span style='color:blueviolet'>not</span> <span style='color:blueviolet'>None</span><span style='color:deepskyblue'>:</span>
+                <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>self</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>delimiter</span>
+            <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>mo</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>group</span>(<span style='color:crimson'>'invalid'</span><span style='color:deepskyblue'>)</span> <span style='color:blueviolet'>is</span> <span style='color:blueviolet'>not</span> <span style='color:blueviolet'>None</span><span style='color:deepskyblue'>:</span>
+                <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>mo</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>group</span>(<span style='color:deepskyblue'>)</span>
+            <span style='color:blueviolet'>raise</span> <span style='color:darkgreen'>ValueError</span>(<span style='color:crimson'>'Unrecognized named group in pattern'</span><span style='color:deepskyblue'>,</span>
+                             <span style='color:darkgreen'>self</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>pattern</span><span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>self</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>pattern</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>sub</span>(<span style='color:darkgreen'>convert</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>self</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>template</span><span style='color:deepskyblue'>)</span>
+
+<span style='color:darkblue'># Initialize Template.pattern.  __init_subclass__() is automatically called</span>
+<span style='color:darkblue'># only for subclasses, not for the Template class itself.</span>
+<span style='color:darkgreen'>Template</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>__init_subclass__</span>(<span style='color:deepskyblue'>)</span>
+
+
+<span style='color:darkblue'>########################################################################</span>
+<span style='color:darkblue'># the Formatter class</span>
+<span style='color:darkblue'># see PEP 3101 for details and purpose of this class</span>
+
+<span style='color:darkblue'># The hard parts are reused from the C implementation.  They're exposed as "_"</span>
+<span style='color:darkblue'># prefixed methods of str.</span>
+
+<span style='color:darkblue'># The overall parser is implemented in _string.formatter_parser.</span>
+<span style='color:darkblue'># The field name parser is implemented in _string.formatter_field_name_split</span>
+
+<span style='color:blueviolet'>class</span> <span style='color:darkgreen'>Formatter</span><span style='color:deepskyblue'>:</span>
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>format</span>(<span style='color:darkgreen'>self</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>format_string</span><span style='color:deepskyblue'>,</span> <span style='color:fuchsia'>/</span><span style='color:deepskyblue'>,</span> <span style='color:fuchsia'>*</span><span style='color:darkgreen'>args</span><span style='color:deepskyblue'>,</span> <span style='color:fuchsia'>**</span><span style='color:darkgreen'>kwargs</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>self</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>vformat</span>(<span style='color:darkgreen'>format_string</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>args</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>kwargs</span><span style='color:deepskyblue'>)</span>
+
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>vformat</span>(<span style='color:darkgreen'>self</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>format_string</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>args</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>kwargs</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>used_args</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>set</span>(<span style='color:deepskyblue'>)</span>
+        <span style='color:darkgreen'>result</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>_</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>self</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>_vformat</span>(<span style='color:darkgreen'>format_string</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>args</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>kwargs</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>used_args</span><span style='color:deepskyblue'>,</span> <span style='color:turquoise'>2</span><span style='color:deepskyblue'>)</span>
+        <span style='color:darkgreen'>self</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>check_unused_args</span>(<span style='color:darkgreen'>used_args</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>args</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>kwargs</span><span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>result</span>
+
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>_vformat</span>(<span style='color:darkgreen'>self</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>format_string</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>args</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>kwargs</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>used_args</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>recursion_depth</span><span style='color:deepskyblue'>,</span>
+                 <span style='color:darkgreen'>auto_arg_index</span><span style='color:deepskyblue'>=</span><span style='color:turquoise'>0</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>recursion_depth</span> <span style='color:fuchsia'><</span> <span style='color:turquoise'>0</span><span style='color:deepskyblue'>:</span>
+            <span style='color:blueviolet'>raise</span> <span style='color:darkgreen'>ValueError</span>(<span style='color:crimson'>'Max string recursion exceeded'</span><span style='color:deepskyblue'>)</span>
+        <span style='color:darkgreen'>result</span> <span style='color:deepskyblue'>=</span> <span style='color:deepskyblue'>[</span><span style='color:deepskyblue'>]</span>
+        <span style='color:blueviolet'>for</span> <span style='color:darkgreen'>literal_text</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>field_name</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>format_spec</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>conversion</span> <span style='color:blueviolet'>in</span> <span style='color:deepskyblue'>\</span>
+                <span style='color:darkgreen'>self</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>parse</span>(<span style='color:darkgreen'>format_string</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+
+            <span style='color:darkblue'># output the literal text</span>
+            <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>literal_text</span><span style='color:deepskyblue'>:</span>
+                <span style='color:darkgreen'>result</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>append</span>(<span style='color:darkgreen'>literal_text</span><span style='color:deepskyblue'>)</span>
+
+            <span style='color:darkblue'># if there's a field, output it</span>
+            <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>field_name</span> <span style='color:blueviolet'>is</span> <span style='color:blueviolet'>not</span> <span style='color:blueviolet'>None</span><span style='color:deepskyblue'>:</span>
+                <span style='color:darkblue'># this is some markup, find the object and do</span>
+                <span style='color:darkblue'>#  the formatting</span>
+
+                <span style='color:darkblue'># handle arg indexing when empty field_names are given.</span>
+                <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>field_name</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:crimson'>''</span><span style='color:deepskyblue'>:</span>
+                    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>auto_arg_index</span> <span style='color:blueviolet'>is</span> <span style='color:blueviolet'>False</span><span style='color:deepskyblue'>:</span>
+                        <span style='color:blueviolet'>raise</span> <span style='color:darkgreen'>ValueError</span>(<span style='color:crimson'>'cannot switch from manual field '</span>
+                                         <span style='color:crimson'>'specification to automatic field '</span>
+                                         <span style='color:crimson'>'numbering'</span><span style='color:deepskyblue'>)</span>
+                    <span style='color:darkgreen'>field_name</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>str</span>(<span style='color:darkgreen'>auto_arg_index</span><span style='color:deepskyblue'>)</span>
+                    <span style='color:darkgreen'>auto_arg_index</span> <span style='color:deepskyblue'>+=</span> <span style='color:turquoise'>1</span>
+                <span style='color:blueviolet'>elif</span> <span style='color:darkgreen'>field_name</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>isdigit</span>(<span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+                    <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>auto_arg_index</span><span style='color:deepskyblue'>:</span>
+                        <span style='color:blueviolet'>raise</span> <span style='color:darkgreen'>ValueError</span>(<span style='color:crimson'>'cannot switch from manual field '</span>
+                                         <span style='color:crimson'>'specification to automatic field '</span>
+                                         <span style='color:crimson'>'numbering'</span><span style='color:deepskyblue'>)</span>
+                    <span style='color:darkblue'># disable auto arg incrementing, if it gets</span>
+                    <span style='color:darkblue'># used later on, then an exception will be raised</span>
+                    <span style='color:darkgreen'>auto_arg_index</span> <span style='color:deepskyblue'>=</span> <span style='color:blueviolet'>False</span>
+
+                <span style='color:darkblue'># given the field_name, find the object it references</span>
+                <span style='color:darkblue'>#  and the argument it came from</span>
+                <span style='color:darkgreen'>obj</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>arg_used</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>self</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>get_field</span>(<span style='color:darkgreen'>field_name</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>args</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>kwargs</span><span style='color:deepskyblue'>)</span>
+                <span style='color:darkgreen'>used_args</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>add</span>(<span style='color:darkgreen'>arg_used</span><span style='color:deepskyblue'>)</span>
+
+                <span style='color:darkblue'># do any conversion on the resulting object</span>
+                <span style='color:darkgreen'>obj</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>self</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>convert_field</span>(<span style='color:darkgreen'>obj</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>conversion</span><span style='color:deepskyblue'>)</span>
+
+                <span style='color:darkblue'># expand the format spec, if needed</span>
+                <span style='color:darkgreen'>format_spec</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>auto_arg_index</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>self</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>_vformat</span>(
+                    <span style='color:darkgreen'>format_spec</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>args</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>kwargs</span><span style='color:deepskyblue'>,</span>
+                    <span style='color:darkgreen'>used_args</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>recursion_depth</span><span style='color:fuchsia'>-</span><span style='color:turquoise'>1</span><span style='color:deepskyblue'>,</span>
+                    <span style='color:darkgreen'>auto_arg_index</span><span style='color:deepskyblue'>=</span><span style='color:darkgreen'>auto_arg_index</span><span style='color:deepskyblue'>)</span>
+
+                <span style='color:darkblue'># format the object and append to the result</span>
+                <span style='color:darkgreen'>result</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>append</span>(<span style='color:darkgreen'>self</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>format_field</span>(<span style='color:darkgreen'>obj</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>format_spec</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+
+        <span style='color:blueviolet'>return</span> <span style='color:crimson'>''</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>join</span>(<span style='color:darkgreen'>result</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>auto_arg_index</span>
+
+
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>get_value</span>(<span style='color:darkgreen'>self</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>key</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>args</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>kwargs</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>isinstance</span>(<span style='color:darkgreen'>key</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>int</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+            <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>args</span><span style='color:deepskyblue'>[</span><span style='color:darkgreen'>key</span><span style='color:deepskyblue'>]</span>
+        <span style='color:blueviolet'>else</span><span style='color:deepskyblue'>:</span>
+            <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>kwargs</span><span style='color:deepskyblue'>[</span><span style='color:darkgreen'>key</span><span style='color:deepskyblue'>]</span>
+
+
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>check_unused_args</span>(<span style='color:darkgreen'>self</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>used_args</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>args</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>kwargs</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:blueviolet'>pass</span>
+
+
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>format_field</span>(<span style='color:darkgreen'>self</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>value</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>format_spec</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>format</span>(<span style='color:darkgreen'>value</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>format_spec</span><span style='color:deepskyblue'>)</span>
+
+
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>convert_field</span>(<span style='color:darkgreen'>self</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>value</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>conversion</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkblue'># do any conversion on the resulting object</span>
+        <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>conversion</span> <span style='color:blueviolet'>is</span> <span style='color:blueviolet'>None</span><span style='color:deepskyblue'>:</span>
+            <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>value</span>
+        <span style='color:blueviolet'>elif</span> <span style='color:darkgreen'>conversion</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:crimson'>'s'</span><span style='color:deepskyblue'>:</span>
+            <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>str</span>(<span style='color:darkgreen'>value</span><span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>elif</span> <span style='color:darkgreen'>conversion</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:crimson'>'r'</span><span style='color:deepskyblue'>:</span>
+            <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>repr</span>(<span style='color:darkgreen'>value</span><span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>elif</span> <span style='color:darkgreen'>conversion</span> <span style='color:deepskyblue'>=</span><span style='color:deepskyblue'>=</span> <span style='color:crimson'>'a'</span><span style='color:deepskyblue'>:</span>
+            <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>ascii</span>(<span style='color:darkgreen'>value</span><span style='color:deepskyblue'>)</span>
+        <span style='color:blueviolet'>raise</span> <span style='color:darkgreen'>ValueError</span>(<span style='color:crimson'>"Unknown conversion specifier {0!s}"</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>format</span>(<span style='color:darkgreen'>conversion</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>)</span>
+
+
+    <span style='color:darkblue'># returns an iterable that contains tuples of the form:</span>
+    <span style='color:darkblue'># (literal_text, field_name, format_spec, conversion)</span>
+    <span style='color:darkblue'># literal_text can be zero length</span>
+    <span style='color:darkblue'># field_name can be None, in which case there's no</span>
+    <span style='color:darkblue'>#  object to format and output</span>
+    <span style='color:darkblue'># if field_name is not None, it is looked up, formatted</span>
+    <span style='color:darkblue'>#  with format_spec and conversion and then used</span>
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>parse</span>(<span style='color:darkgreen'>self</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>format_string</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>_string</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>formatter_parser</span>(<span style='color:darkgreen'>format_string</span><span style='color:deepskyblue'>)</span>
+
+
+    <span style='color:darkblue'># given a field_name, find the object it references.</span>
+    <span style='color:darkblue'>#  field_name:   the field being looked up, e.g. "0.name"</span>
+    <span style='color:darkblue'>#                 or "lookup[3]"</span>
+    <span style='color:darkblue'>#  used_args:    a set of which args have been used</span>
+    <span style='color:darkblue'>#  args, kwargs: as passed in to vformat</span>
+    <span style='color:blueviolet'>def</span> <span style='color:darkgreen'>get_field</span>(<span style='color:darkgreen'>self</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>field_name</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>args</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>kwargs</span><span style='color:deepskyblue'>)</span><span style='color:deepskyblue'>:</span>
+        <span style='color:darkgreen'>first</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>rest</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>_string</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>formatter_field_name_split</span>(<span style='color:darkgreen'>field_name</span><span style='color:deepskyblue'>)</span>
+
+        <span style='color:darkgreen'>obj</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>self</span><span style='color:deepskyblue'>.</span><span style='color:darkgreen'>get_value</span>(<span style='color:darkgreen'>first</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>args</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>kwargs</span><span style='color:deepskyblue'>)</span>
+
+        <span style='color:darkblue'># loop through the rest of the field_name, doing</span>
+        <span style='color:darkblue'>#  getattr or getitem as needed</span>
+        <span style='color:blueviolet'>for</span> <span style='color:darkgreen'>is_attr</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>i</span> <span style='color:blueviolet'>in</span> <span style='color:darkgreen'>rest</span><span style='color:deepskyblue'>:</span>
+            <span style='color:blueviolet'>if</span> <span style='color:darkgreen'>is_attr</span><span style='color:deepskyblue'>:</span>
+                <span style='color:darkgreen'>obj</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>getattr</span>(<span style='color:darkgreen'>obj</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>i</span><span style='color:deepskyblue'>)</span>
+            <span style='color:blueviolet'>else</span><span style='color:deepskyblue'>:</span>
+                <span style='color:darkgreen'>obj</span> <span style='color:deepskyblue'>=</span> <span style='color:darkgreen'>obj</span><span style='color:deepskyblue'>[</span><span style='color:darkgreen'>i</span><span style='color:deepskyblue'>]</span>
+
+        <span style='color:blueviolet'>return</span> <span style='color:darkgreen'>obj</span><span style='color:deepskyblue'>,</span> <span style='color:darkgreen'>first</span>
+
+        </pre>
+    </body>
+</html>
